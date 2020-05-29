@@ -8,7 +8,7 @@ Created on Wed May 20 11:27:26 2020
 
 
 import numpy as np
-import SumProduct as sp
+import SumProductNodes as sp
 from myTools import getSteadyStateDist
 from CFTR import Receptor
 from Simulator import Simulator
