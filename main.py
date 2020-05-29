@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 #statemap = [1,0,0]
 
 # length of the simulation, in time instants
-numTimeInstants = 100
+numTimeInstants = 1000
 
 # ACh-like graph
 cftrModel = Receptor() # CFTR parameter object
