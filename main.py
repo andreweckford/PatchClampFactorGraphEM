@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 #statemap = [1,0,0]
 
 # length of the simulation, in time instants
-numTimeInstants = 1000
+numTimeInstants = 100
 
 # ACh-like graph
 cftrModel = Receptor() # CFTR parameter object
@@ -89,10 +89,39 @@ for i in range(0,numTimeInstants):
     else:
         aPosterioriProbs = np.vstack((aPosterioriProbs,v[i].aPosteriori()))
       
-plt.figure(1)
-plt.plot(ionChannels)
-for i in range(0,4):
-    plt.plot(aPosterioriProbs[:,i])
+stateLabels = ['C1a','C1b','C2','O1','O2','C3','C4']
 
+plt.figure(1)
+plt.plot(ionChannels,label='Current')
+for i in range(0,numStates):
+    plt.plot(aPosterioriProbs[:,i],label=stateLabels[i])
+plt.legend()
+
+# highest probability state
+hpState = np.zeros(numTimeInstants)
+stateErrorCount = 0
+stateErrorCount1 = 0
+for i in range(0,numTimeInstants):
+    hpState[i] = np.argmax(aPosterioriProbs[i,:])
+    if hpState[i] != states[i]:
+        stateErrorCount += 1
+    if hpState[i] == 6:
+        if states[i] != 6 and states[i] != 0 and states[i] != 5:
+            stateErrorCount1 += 1
+    elif hpState[i] == 0:
+        if states[i] != 0 and states[1] != 6 and states[i] != 1:
+            stateErrorCount1 += 1
+    else:
+        if np.abs(states[i] - hpState[i]) > 1.5:
+            stateErrorCount += 1
+    
+print(stateErrorCount)
+print(stateErrorCount1)
+
+plt.figure(2)
+plt.plot(hpState,label='Guess')
+plt.plot(states,label='Ground truth')
+plt.legend()
+    
     
 
