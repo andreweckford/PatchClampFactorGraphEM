@@ -8,6 +8,12 @@ Created on Fri May 29 09:43:29 2020
 
 import numpy as np
 
+# Edit this file to change the CFTR parameters.
+# P0 and P1 are expressed as transition probability matrices:
+#  - each entry is the probability of the given transition
+#    i.e. P0[3,4] is Pr(next state is O1 given current state is C2)
+#  - rows must sum to 1 by the rules of probability
+
 class Receptor:
     
     def __init__(self):
