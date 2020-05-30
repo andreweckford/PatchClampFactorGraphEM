@@ -9,7 +9,7 @@ To run:
 
 from main import main; main()
 
-To change the length of the simulation, for example to 1000 time instants, add numTimeInstants=1000 as a parameter to main().
+To change the length of the simulation, for example to 1000 time instants, add "numTimeInstants=1000" as a parameter to main().
 
 To suppress plots, add "plots=False" as a parameter to main(). (In this case, only the two values mentioned above are printed.)
 
