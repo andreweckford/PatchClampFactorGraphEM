@@ -114,16 +114,22 @@ def main(numTimeInstants = 200, plots = True):
 
     if plots is True:
         plt.figure(1)
-        plt.plot(ionChannels,label='Current')
+        plt.plot(ionChannels,label='Current on')
         for i in range(0,numStates):
             plt.plot(aPosterioriProbs[:,i],label=stateLabels[i])
+        plt.title('A posteriori probability of each state given ion current')
+        plt.xlabel('Time index')
+        plt.ylabel('Probability')
         plt.legend()
         plt.show()
         
         plt.figure(2)
         plt.plot(hpState,label='Estimate')
         plt.plot(states,label='Actual')
+        plt.title('Max a posteriori estimates compared with actual states')
         plt.yticks(np.arange(7),stateLabels)
+        plt.xlabel('Time index')
+        plt.ylabel('State label')
         plt.legend()
         plt.show()
     
