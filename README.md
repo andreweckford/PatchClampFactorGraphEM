@@ -5,12 +5,10 @@ Use Python 3 with the Anaconda Python distribution. (Minimum requirements: numpy
 
 To run:
 
-from main import main
-main()
+from main import main; main()
 
 Default is 200 timesteps. To change the length of the simulation (for example, 1000 timesteps):
 
-from main import main
-main(1000)
+from main import main; main(1000)
 
 To change the receptor parameters, edit the CFTR.py file.
