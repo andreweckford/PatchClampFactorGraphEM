@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 # from main import main
 # main(1000)
 
-def main(numTimeInstants = 200):
+def main(numTimeInstants = 200, plots = True):
 
     # ACh-like graph
     cftrModel = Receptor() # CFTR parameter object
@@ -111,20 +111,21 @@ def main(numTimeInstants = 200):
     print(stateErrorCount1)
     
     stateLabels = ['C1a','C1b','C2','O1','O2','C3','C4']
-    
-    plt.figure(1)
-    plt.plot(ionChannels,label='Current')
-    for i in range(0,numStates):
-        plt.plot(aPosterioriProbs[:,i],label=stateLabels[i])
-    plt.legend()
-    plt.show()
-    
-    plt.figure(2)
-    plt.plot(hpState,label='Estimate')
-    plt.plot(states,label='Actual')
-    plt.yticks(np.arange(7),stateLabels)
-    plt.legend()
-    plt.show()
+
+    if plots is True:
+        plt.figure(1)
+        plt.plot(ionChannels,label='Current')
+        for i in range(0,numStates):
+            plt.plot(aPosterioriProbs[:,i],label=stateLabels[i])
+        plt.legend()
+        plt.show()
+        
+        plt.figure(2)
+        plt.plot(hpState,label='Estimate')
+        plt.plot(states,label='Actual')
+        plt.yticks(np.arange(7),stateLabels)
+        plt.legend()
+        plt.show()
     
 if (__name__ == '__main__'):
     main()
