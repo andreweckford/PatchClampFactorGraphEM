@@ -60,24 +60,33 @@ def main(numTimeInstants = 200, plots = True):
     
     for i in range(0,numTimeInstants):
         v.append(sp.StateNode())
-        s.append(sp.MarkovFactorNode(P[int(inputs[i])]))
         c.append(sp.IonChannelNode(ionChannels[i],statemap))
-     
+
+    for i in range(0,numTimeInstants-1):
+        s.append(sp.MarkovFactorNode(P[int(inputs[i])]))        
+
     initRightMessage = getSteadyStateDist(px[0]*P[0]+px[1]*P[1])
     initLeftMessage = np.ones(numStates)
     
     # rightward messages
     v[0].setChannelMessage(c[0].message())
-    v[0].setRightInMessage(initRightMessage)
-    #print(v[0].rightOutMessage())
+    v[0].setRightInMessage(initRightMessage)        
+    s[0].setRightInMessage(v[0].rightOutMessage())
     
-    for i in range(1,numTimeInstants):
-        s[i].setRightInMessage(v[i-1].rightOutMessage())
-        v[i].setRightInMessage(s[i].rightOutMessage())
+    for i in range(1,numTimeInstants-1):
         v[i].setChannelMessage(c[i].message())
+        v[i].setRightInMessage(s[i-1].rightOutMessage())
+        s[i].setRightInMessage(v[i].rightOutMessage())
         #print(v[i].rightOutMessage())
+        
+    # finally ... the last rightward messages
+    v[numTimeInstants-1].setChannelMessage(c[numTimeInstants-1].message())
+    v[numTimeInstants-1].setRightInMessage(s[numTimeInstants-2].rightOutMessage())
     
-    v[-1].setLeftInMessage(initLeftMessage)
+    # leftward messages
+    # initial, from the left
+    # no need to set the channel messages
+    v[numTimeInstants-1].setLeftInMessage(initLeftMessage)
     for i in range(numTimeInstants-2,-1,-1):
         s[i].setLeftInMessage(v[i+1].leftOutMessage())
         v[i].setLeftInMessage(s[i].leftOutMessage())
