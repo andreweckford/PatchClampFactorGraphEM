@@ -11,21 +11,26 @@ Created on Wed May 20 11:25:42 2020
 # "right" messages are from the past to the future
 
 import numpy as np
+import time
 
 class IonChannelNode:
     
-    # o = 1 if open, 0 if closed
     # statemap is the map of kinetic states to ion channel states
     # for example, 5 states, [0,1,0,0,1]: states 0,2,3 are closed, 1,4 are open
+    # the ion channel may be nonbinary, such as two conduction states numbered 1 and 2
     def __init__(self,o,statemap):
         self.o = o
         self.statemap = statemap
         
     def message(self):
-        if self.o == 0:
-            return 1-np.array(self.statemap)
+        r = np.zeros(len(self.statemap))
+        for i in range(0,len(self.statemap)):
+            if self.o == self.statemap[i]:
+                r[i] = 1.
+            else:
+                r[i] = 0.
         
-        return np.array(self.statemap)
+        return r
     
 class StateNode:
     
@@ -92,11 +97,15 @@ class StateNode:
     
 class MarkovFactorNode:
     
-    def __init__(self,P):
+    def __init__(self,P,normalize=True):
         self.rightInMessage = None
         self.leftInMessage = None
         self.P = P
-        
+        self.normalize = normalize
+    
+    def updateP(self,P):
+        self.P = P
+    
     # set inbound message from the right
     def setRightInMessage(self,rightInMessage):
         self.rightInMessage = rightInMessage
@@ -115,4 +124,18 @@ class MarkovFactorNode:
         if self.rightInMessage is None:
             return None
         
-        return self.rightInMessage @ self.P
+        return self.rightInMessage @ self.P        
+    
+    def aPosteriori(self):
+        if self.rightInMessage is None:
+            return None
+        
+        if self.leftInMessage is None:
+            return None
+        
+        r = np.diag(self.rightInMessage) @ self.P @ np.diag(self.leftInMessage)
+        if self.normalize is False:
+            return r
+        
+        return r/np.sum(r)
+        
