@@ -10,7 +10,7 @@ import numpy as np
 import SumProductNodes as sp
 from myTools import getSteadyStateDist
 #from CFTR import Receptor
-from receptors.ACh import Receptor
+from receptors import ACh
 from Simulator import Simulator
 #import matplotlib.pyplot as plt
 import sys
@@ -53,7 +53,7 @@ def main(numTimeInstants = 1000,
         numTimeInstants = len(inputData)
     
     # uncomment for ACh-like graph
-    receptorModel = Receptor()
+    receptorModel = ACh.Receptor()
     
     # uncomment for CFTR-like graph
     #receptorModel = Receptor(C1aExitProb=C1aXP) # CFTR parameter object
