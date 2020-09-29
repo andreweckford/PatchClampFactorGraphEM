@@ -10,7 +10,7 @@ import numpy as np
 import SumProductNodes as sp
 from myTools import getSteadyStateDist
 #from CFTR import Receptor
-from ACh import Receptor
+from receptor.ACh import Receptor
 from Simulator import Simulator
 #import matplotlib.pyplot as plt
 import sys
