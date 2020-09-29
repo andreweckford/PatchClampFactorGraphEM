@@ -61,23 +61,3 @@ class clp:
         return params
 
                 
-        # if (len(argv) == 5):
-        #     params["numTimeInstants"] = int(argv[1])
-        #     params["maxEMIterations"] = int(argv[2])
-        #     params["confidence"] = float(argv[3])
-        #     params["C1aXP"] = float(argv[4])
-            
-        # if (len(argv) == 6):
-        #     params["numTimeInstants"] = int(argv[1])
-        #     params["maxEMIterations"] = int(argv[2])
-        #     params["confidence"] = float(argv[3])
-        #     params["C1aXP"] = float(argv[4])
-        #     if (argv[5] == '-l'):
-        #         params["lastOnly"] = True
-    
-        return params
-
-# for debugging
-if __name__ == "__main__":
-    #argv = ["asdf"]
-    print(clp.argvHandler(sys.argv))
