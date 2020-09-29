@@ -9,6 +9,7 @@ Created on Wed May 20 11:27:26 2020
 import numpy as np
 import SumProductNodes as sp
 from myTools import getSteadyStateDist
+from argvHandler import clp
 #from CFTR import Receptor
 from receptors import ACh
 from Simulator import Simulator
@@ -22,27 +23,15 @@ import sys
 # from main import main
 # main(1000)
 
-def main(numTimeInstants = 1000, 
-         maxEMIterations = 10, 
-         confidence = 0.8, 
-         C1aXP=0.1, 
-         lastOnly=False, 
-         inputData=None,
-         printP=False):    
+def main(inputData = None):    
 
-    if (len(sys.argv) == 5):
-        numTimeInstants = int(sys.argv[1])
-        maxEMIterations = int(sys.argv[2])
-        confidence = float(sys.argv[3])
-        C1aXP = float(sys.argv[4])
-        
-    if (len(sys.argv) == 6):
-        numTimeInstants = int(sys.argv[1])
-        maxEMIterations = int(sys.argv[2])
-        confidence = float(sys.argv[3])
-        C1aXP = float(sys.argv[4])
-        if (sys.argv[5] == '-l'):
-            lastOnly = True
+    # default parameters are in clp    
+    
+    params = clp.argvHandler(sys.argv)
+    
+    if (params["validArgv"] is False):
+        print(params)
+        sys.exit()
             
     # if we have input data, i.e., inputData is not None,
     # numTimeInstants need not be specified and C1aXP is irrelevant
@@ -50,13 +39,13 @@ def main(numTimeInstants = 1000,
     # so that the data processing doesn't need to be modified
     
     if inputData is not None:
-        numTimeInstants = len(inputData)
+        params["numTimeInstants"] = len(inputData)
     
     # uncomment for ACh-like graph
     receptorModel = ACh.Receptor()
     
     # uncomment for CFTR-like graph
-    #receptorModel = Receptor(C1aExitProb=C1aXP) # CFTR parameter object
+    #receptorModel = Receptor(C1aExitProb=params["C1aXP"]) # CFTR parameter object
         
     # get the parameters out from the model
     P0 = receptorModel.P0 
@@ -73,7 +62,7 @@ def main(numTimeInstants = 1000,
     sim = Simulator(receptorModel,px)
     
     # following the above, the inputs are all "0"
-    inputs = np.zeros(numTimeInstants)
+    inputs = np.zeros(params["numTimeInstants"])
     
     # sequence of states and channel openings from the simulator
     if inputData is not None:
@@ -108,9 +97,9 @@ def main(numTimeInstants = 1000,
     # get the state estimates when the system parameters are perfectly known
     vvv = eStep(P0,ionChannels,statemap)
     list2csv(stateGuesses(vvv))
-    list2csv(confidentStateGuesses(vvv,confidence))
+    list2csv(confidentStateGuesses(vvv,params["confidence"]))
     
-    for emIter in range(0,maxEMIterations):
+    for emIter in range(0,params["maxEMIterations"]):
             
         # fix later ... we changed P from [P0,P1] to just P ...
         # now we are just ignoring px
@@ -124,12 +113,12 @@ def main(numTimeInstants = 1000,
         s = []
         c = []
         
-        for i in range(0,numTimeInstants):
+        for i in range(0,params["numTimeInstants"]):
             # v[i] refers to state variable s_i
             v.append(sp.StateNode())
             c.append(sp.IonChannelNode(ionChannels[i],statemap))
     
-        for i in range(0,numTimeInstants-1):
+        for i in range(0,params["numTimeInstants"]-1):
             # s[i] refers to factor p(s_{i+1} | s_i)
             # note that there is one less factor node than variable node
             # because the factor nodes appear between the variables
@@ -145,22 +134,22 @@ def main(numTimeInstants = 1000,
         v[0].setRightInMessage(initRightMessage)        
         s[0].setRightInMessage(v[0].rightOutMessage())
         
-        for i in range(1,numTimeInstants-1):
+        for i in range(1,params["numTimeInstants"]-1):
             v[i].setChannelMessage(c[i].message())
             v[i].setRightInMessage(s[i-1].rightOutMessage())
             s[i].setRightInMessage(v[i].rightOutMessage())
             #print(v[i].rightOutMessage())
             
         # finally ... the last rightward messages
-        v[numTimeInstants-1].setChannelMessage(c[numTimeInstants-1].message())
-        v[numTimeInstants-1].setRightInMessage(s[numTimeInstants-2].rightOutMessage())
+        v[params["numTimeInstants"]-1].setChannelMessage(c[params["numTimeInstants"]-1].message())
+        v[params["numTimeInstants"]-1].setRightInMessage(s[params["numTimeInstants"]-2].rightOutMessage())
         
         
         # leftward messages
         # initial, from the left
         # no need to set the channel messages
-        v[numTimeInstants-1].setLeftInMessage(initLeftMessage)
-        for i in range(numTimeInstants-2,-1,-1):
+        v[params["numTimeInstants"]-1].setLeftInMessage(initLeftMessage)
+        for i in range(params["numTimeInstants"]-2,-1,-1):
             s[i].setLeftInMessage(v[i+1].leftOutMessage())
             v[i].setLeftInMessage(s[i].leftOutMessage())
             #print(v[i].leftOutMessage())
@@ -169,7 +158,7 @@ def main(numTimeInstants = 1000,
             
         # numTimeInstants-1 because that is the number of initialized factors
         Q = np.zeros((numStates,numStates))
-        for i in range(1,numTimeInstants-1):
+        for i in range(1,params["numTimeInstants"]-1):
             #print(Q)
             #print(s[i])
             #print(s[i].aPosteriori())
@@ -180,11 +169,11 @@ def main(numTimeInstants = 1000,
         
         P = Q    
                 
-        if ((lastOnly is False) or (emIter == maxEMIterations-1)):
+        if ((params["lastOnly"] is False) or (emIter == params["maxEMIterations"]-1)):
             list2csv(stateGuesses(v))
-            list2csv(confidentStateGuesses(v,confidence))
+            list2csv(confidentStateGuesses(v,params["confidence"]))
             
-    if printP is True:
+    if params["printP"] is True:
         print(P)
 
 def eStep(P,ionChannels,statemap):
@@ -328,10 +317,6 @@ def noDecisionCount(chpState):
             r += 1
             
     return r
-
-
-def plots():
-    pass
 
 # attempt to calculate the actual likelihood function
 # this will work with only a single matrix P
