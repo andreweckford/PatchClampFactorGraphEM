@@ -6,7 +6,7 @@ Created on Tue Sep 29 10:40:38 2020
 @author: andreweckford
 """
 
-import sys
+from receptors import CFTR,ACh
 
 class clp:
     
@@ -19,19 +19,25 @@ class clp:
         ['maxEMIterations','-i',False,'int'],
         ['confidence','-c',False,'float'],
         ['receptorParameter','-p',False,'string'],
-        ['lastOnly','-l',True,'']
+        ['lastOnly','-l',True,''],
+        ['receptor','-r',False,'string']
     ]
 
+
+    # this is where the initial parameters are defined
+    # dictionary keys are given above in flags
     initParams = {
         flags[0][0] : 1000,
         flags[1][0] : 10,
         flags[2][0] : 0.8,
         flags[3][0] : "0.1",
         flags[4][0] : False,
+        flags[5][0] : "CFTR",
         "printP" : False,
         "validArgv" : True
     }
     
+    # handle command line parameters
     def argvHandler(argv):
         
         params = dict(clp.initParams) # copy constructor
@@ -60,4 +66,20 @@ class clp:
         
         return params
 
-                
+    # creates and returns a receptor object with the given parameters
+    # rString and rParams are given by the command line parameters
+    # each possible receptor in the receptors directory should have an entry
+    def createReceptor(rString,rParams):
+        
+        if (rString == "CFTR"):
+            # parameter for CFTR is transition probability 1->2
+            r = CFTR.Receptor(float(rParams))
+            return r
+        
+        if (rString == "ACh"):
+            # parameter for ACh is concentration in the P0 state
+            r = ACh.Receptor(float(rParams))
+            return r
+                    
+        return None
+            

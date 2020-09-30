@@ -11,7 +11,7 @@ import SumProductNodes as sp
 from myTools import getSteadyStateDist
 from argvHandler import clp
 #from CFTR import Receptor
-from receptors import ACh
+#from receptors import ACh
 from Simulator import Simulator
 #import matplotlib.pyplot as plt
 import sys
@@ -29,6 +29,7 @@ def main(inputData = None):
     
     params = clp.argvHandler(sys.argv)
     
+    # exit if the parameters are invalid ... this is not fully implemented yet
     if (params["validArgv"] is False):
         print(params)
         sys.exit()
@@ -41,11 +42,8 @@ def main(inputData = None):
     if inputData is not None:
         params["numTimeInstants"] = len(inputData)
     
-    # uncomment for ACh-like graph
-    receptorModel = ACh.Receptor()
-    
-    # uncomment for CFTR-like graph
-    #receptorModel = Receptor(C1aExitProb=params["C1aXP"]) # CFTR parameter object
+    # obtain the correct receptor model
+    receptorModel = clp.createReceptor(params["receptor"],params["receptorParameter"])
         
     # get the parameters out from the model
     P0 = receptorModel.P0 

@@ -10,7 +10,7 @@ import numpy as np
 
 class Receptor:
     
-    def __init__(self):
+    def __init__(self,c0):
         
         # State numbering: (labels from Colquhoun and Hawkes, 1982)
         # 0 = AR
@@ -24,7 +24,7 @@ class Receptor:
         bigDelta = 0.05 # discrete timestep in ms
         
         # concentrations for low (0) and high (1) input
-        c = np.array([2e-5,1e-5])
+        c = np.array([c0,1e-5])
     
         # parameter values taken from Colquhoun and Hawkes, 1982
         # rates at the reference are in seconds, these are in ms
