@@ -10,10 +10,7 @@ import numpy as np
 import SumProductNodes as sp
 from myTools import getSteadyStateDist
 from argvHandler import clp
-#from CFTR import Receptor
-#from receptors import ACh
 from Simulator import Simulator
-#import matplotlib.pyplot as plt
 import sys
 
 # The default value below allows you to simply run this script.
@@ -33,7 +30,12 @@ def main(inputData = None):
     if (params["validArgv"] is False):
         print(params)
         sys.exit()
-            
+    
+        
+    # check to see if we print the parameters, if not then print them
+    if (params["suppressParameters"] is False):
+        clp.csvParams(params)    
+    
     # if we have input data, i.e., inputData is not None,
     # numTimeInstants need not be specified and C1aXP is irrelevant
     # also, the simulation is irrelevant, but we will keep a dummy simulation
@@ -68,8 +70,10 @@ def main(inputData = None):
         states = np.zeros(len(inputData))
     else:
         states,ionChannels = sim.getReceptorState(inputs)
-    
-    list2csv(states)
+
+    # don't print the states if we are suppressing the estimates    
+    if (params["suppressEstimates"] is False):
+        list2csv(states)
     
     # number of states
     numStates = len(statemap)
@@ -79,7 +83,6 @@ def main(inputData = None):
     
     # here's where the sum-product algoirthm is implemented        
 
-    #np.set_printoptions(precision=3,suppress=True)
     
     # initial estimate of P
 
@@ -93,9 +96,11 @@ def main(inputData = None):
         P[i,:] = P[i,:] / np.sum(P[i,:])
     
     # get the state estimates when the system parameters are perfectly known
+    # don't print these estimates if we are suppressing the estimates    
     vvv = eStep(P0,ionChannels,statemap)
-    list2csv(stateGuesses(vvv))
-    list2csv(confidentStateGuesses(vvv,params["confidence"]))
+    if (params["suppressEstimates"] is False):
+        list2csv(stateGuesses(vvv))
+        list2csv(confidentStateGuesses(vvv,params["confidence"]))
     
     for emIter in range(0,params["maxEMIterations"]):
             
@@ -166,13 +171,23 @@ def main(inputData = None):
             Q[i,:] = Q[i,:] / np.sum(Q[i,:])
         
         P = Q    
-                
-        if ((params["lastOnly"] is False) or (emIter == params["maxEMIterations"]-1)):
+        
+        # print the estimates
+        # don't print if (a) we're not on the last estimate and lastOnly is true, or
+        # (b) suppressEstimates is True
+        if ((params["lastOnly"] is False) or (emIter == params["maxEMIterations"]-1)) and (params["suppressEstimates"] is False):
             list2csv(stateGuesses(v))
             list2csv(confidentStateGuesses(v,params["confidence"]))
-            
-    if params["printP"] is True:
-        print(P)
+
+    # after the estimates, print the estimated matrix if the flag is set
+    if params["suppressP"] is False:
+        printP(P)
+
+# outputs P as CSV
+def printP(P):
+    numStates = P.shape[0]
+    for i in range(0,numStates):
+        list2csv(P[i,:])
 
 def eStep(P,ionChannels,statemap):
     

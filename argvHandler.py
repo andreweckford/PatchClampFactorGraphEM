@@ -14,13 +14,17 @@ class clp:
     # bare flags do not take any additional values, type is ignored
     # e.g. -l is a bare flag, -n=10000 is not
 
+    # no short flag should be the prefix of any other short flag!
     flags = [
         ['numTimeInstants','-n',False,'int'],
         ['maxEMIterations','-i',False,'int'],
         ['confidence','-c',False,'float'],
         ['receptorParameter','-p',False,'string'],
         ['lastOnly','-l',True,''],
-        ['receptor','-r',False,'string']
+        ['receptor','-r',False,'string'],
+        ['suppressEstimates','-se',True,''],
+        ['suppressP','-sP',True,''],
+        ['suppressParameters','-sq',True,'']
     ]
 
 
@@ -33,7 +37,9 @@ class clp:
         flags[3][0] : "0.1",
         flags[4][0] : False,
         flags[5][0] : "CFTR",
-        "printP" : False,
+        flags[6][0] : False,
+        flags[7][0] : False,
+        flags[8][0] : False,
         "validArgv" : True
     }
     
@@ -82,4 +88,16 @@ class clp:
             return r
                     
         return None
-            
+     
+    # prints two csv lines:
+    # first with parameter keys, second with parameter values
+    def csvParams(params):
+        for i in range(0,len(clp.flags)-1):
+            print(clp.flags[i][0]+",",end="")
+        print(clp.flags[-1][0])
+        for i in range(0,len(clp.flags)-1):
+            print(str(params[clp.flags[i][0]])+",",end="")
+        print(str(params[clp.flags[-1][0]]))
+        
+        
+        
