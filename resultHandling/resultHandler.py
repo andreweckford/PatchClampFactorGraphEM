@@ -99,13 +99,24 @@ class Results:
                 else:
                     self.P = np.vstack((self.P,newLine))
                 currentIndex += 1
-            
-        
-        print(self.params)
-        print(self.kp)
-        print(self.P)
-        
-        
+    
+    def __errorsHelper(self,v):
+        e = 0
+        for i in range(0,len(v)):
+            if (v[i] != self.states[i]):
+                e += 1
+                
+        return e
+     
+    def kpErrors(self):
+        return self.__errorsHelper(self.kp)
+    
+    def emErrors(self):
+        r = np.zeros(len(self.emEstimates))
+        for i in range(0,len(self.emEstimates)):
+            r[i] = self.__errorsHelper(self.emEstimates[i])
+        return r
+
         # # 
         
         # m = None

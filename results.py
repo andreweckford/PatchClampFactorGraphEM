@@ -10,7 +10,10 @@ from resultHandling.resultHandler import Results
 
 
 def main():
-    Results().parseResults()
+    r = Results()
+    r.parseResults()
+    print(r.kpErrors())
+    print(r.emErrors())
 
 if __name__ == "__main__":
     main()
