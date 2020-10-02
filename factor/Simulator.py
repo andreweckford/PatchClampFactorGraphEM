@@ -7,7 +7,7 @@ Created on Fri May 29 11:21:58 2020
 """
 
 import numpy as np
-from myTools import randIntNonUniform,getSteadyStateDist
+from .myTools import randIntNonUniform,getSteadyStateDist
 
 class Simulator:
     

@@ -24,9 +24,9 @@ class clp:
         ['receptor','-r',False,'string'],
         ['suppressEstimates','-se',True,''],
         ['suppressP','-sP',True,''],
-        ['suppressParameters','-sq',True,'']
+        ['suppressParameters','-sq',True,''],
+        ['diagonalBias','-d',False,'float']
     ]
-
 
     # this is where the initial parameters are defined
     # dictionary keys are given above in flags
@@ -40,9 +40,10 @@ class clp:
         flags[6][0] : False,
         flags[7][0] : False,
         flags[8][0] : False,
+        flags[9][0] : 0.,
         "validArgv" : True
     }
-    
+        
     # handle command line parameters
     def argvHandler(argv):
         
@@ -74,7 +75,9 @@ class clp:
 
     # creates and returns a receptor object with the given parameters
     # rString and rParams are given by the command line parameters
-    # each possible receptor in the receptors directory should have an entry
+    # rParams is potentially different for each possible receptor
+    # and these differences are interpreted below ... so each possible 
+    # receptor in the receptors directory should have an entry
     def createReceptor(rString,rParams):
         
         if (rString == "CFTR"):
@@ -98,6 +101,29 @@ class clp:
         for i in range(0,len(clp.flags)-1):
             print(str(params[clp.flags[i][0]])+",",end="")
         print(str(params[clp.flags[-1][0]]))
+ 
+    # inverts csvParams
+    # labels and values must have the same length
+    # labels and values are expected to be lists of strings, converted from the csv reader
+    def paramsFromCSV(labels,values):
         
+        # for convenience create a dictionary of data types
+        paramTypes = {}
+        for i in range(0,len(clp.flags)):
+            paramTypes[clp.flags[i][0]] = clp.flags[i][3]
+        
+        # start with default values ... use a copy constructor
+        r = dict(clp.initParams)
+        
+        # note that the values will all be strings so we have to convert
+        for i in range(0,len(labels)):
+            if (paramTypes[labels[i]] == 'int'):
+                r[labels[i]] = int(values[i])
+            elif (paramTypes[labels[i]] == 'float'):
+                r[labels[i]] = float(values[i])
+            else:
+                r[labels[i]] = values[i]
+        
+        return r
         
         

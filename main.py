@@ -7,10 +7,10 @@ Created on Wed May 20 11:27:26 2020
 """
 
 import numpy as np
-import SumProductNodes as sp
-from myTools import getSteadyStateDist
-from argvHandler import clp
-from Simulator import Simulator
+import factor.SumProductNodes as sp
+from factor.myTools import getSteadyStateDist
+from factor.argvHandler import clp
+from factor.Simulator import Simulator
 import sys
 
 # The default value below allows you to simply run this script.
@@ -87,9 +87,10 @@ def main(inputData = None):
     # initial estimate of P
 
     # this gives the initial estimate a diagonal bias
-    dt = 1.
+    dt = 1. - params["diagonalBias"]
     P = (1-dt)*np.eye(numStates) + dt*receptorModel.Pmask
     #P = P0
+    #P = (1-dt)*np.eye(numStates) + dt*np.ones((numStates,numStates))/numStates
     
     # force the initial estimate to be a probability, if it's not already
     for i in range(0,numStates):
