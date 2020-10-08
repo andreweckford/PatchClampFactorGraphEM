@@ -9,16 +9,9 @@ Created on Wed May 20 11:27:26 2020
 import numpy as np
 import factor.SumProductNodes as sp
 from factor.myTools import getSteadyStateDist
-from factor.argvHandler import clp
+from factor.mainArgvHandler import clp
 from factor.Simulator import Simulator
 import sys
-
-# The default value below allows you to simply run this script.
-# If you want to change the value, better to execute it from the console,
-# for example if you want a length of 1000:
-# 
-# from main import main
-# main(1000)
 
 def main(inputData = None):    
 

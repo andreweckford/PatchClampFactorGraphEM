@@ -7,6 +7,7 @@ Created on Tue Sep 29 10:40:38 2020
 """
 
 from receptors import CFTR,ACh
+import sys
 
 class clp:
     
@@ -46,6 +47,11 @@ class clp:
         
     # handle command line parameters
     def argvHandler(argv):
+        
+        # improve on help later
+        if (argv[1] == '--help') or (argv[1] == '-h'):
+            print(clp.flags)
+            sys.exit()
         
         params = dict(clp.initParams) # copy constructor
         

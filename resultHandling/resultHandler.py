@@ -9,7 +9,7 @@ Created on Fri Oct  2 08:59:31 2020
 import sys
 import csv
 import numpy as np
-from factor.argvHandler import clp
+from factor.mainArgvHandler import clp
 
 class Results:
     
@@ -33,13 +33,15 @@ class Results:
     # -- next line is the state estimate with known parameters, with non-confident estimates blanked out (with -1)
     # -- next: if lastOnly is True, two more lines with the EM estimates; if lastOnly is False, two lines for each EM iteration
     # - (if readP == True) ... the matrix of transition probability estimates
-    def parseResults(self,filename = None, readParams = True, readEstimates = True, readP = True):
+    def parseResults(self,filename = None, reader = None, readParams = True, readEstimates = True, readP = True):
         
-        if filename is None:
-            r = csv.reader(sys.stdin.readlines())
-        else:
+        if reader is not None:
+            r = reader
+        elif filename is not None:
             with open(filename) as csvfile:
                 r = csv.reader(csvfile)
+        else:
+            r = csv.reader(sys.stdin.readlines())
     
         # create a big list of everything in the csv
         l = []
@@ -107,7 +109,33 @@ class Results:
                 e += 1
                 
         return e
-     
+    
+    # only count when the state vector is in onlyCount
+    # onlyCount should be a *list*, even if it has only one element
+    def __errorsHelperOnlyCount(self,v,onlyCount):
+        e = 0
+        n = 0
+        for i in range(0,len(v)):
+            if (self.states[i] in onlyCount):
+                n += 1
+                if (v[i] != self.states[i]):
+                    e += 1
+                    
+        return np.array([e,n])
+    
+    # don't count when the miss vector is in missCount (e.g., -1)
+    # missCount should be a *list*, even if it has only one element
+    def __errorsHelperMissCount(self,v,missCount):
+        e = 0
+        n = 0
+        for i in range(0,len(v)):
+            if (v[i] not in missCount):
+                n += 1
+                if (v[i] != self.states[i]):
+                    e += 1
+                    
+        return np.array([e,n])
+                
     def kpErrors(self):
         return self.__errorsHelper(self.kp)
     
@@ -116,6 +144,16 @@ class Results:
         for i in range(0,len(self.emEstimates)):
             r[i] = self.__errorsHelper(self.emEstimates[i])
         return r
+    
+    # conf count is a 2-element array, first element is errors, second is count of confident estimates
+    def kpConfErrors(self):
+        return self.__errorsHelperMissCount(self.kp_conf,['-1.0'])
+
+    def emConfErrors(self):
+        n = []
+        for i in range(0,len(self.emEstimates)):
+            n.append(self.__errorsHelperMissCount(self.emEstimates[i],'-1.0'))
+        return n
 
         # # 
         
