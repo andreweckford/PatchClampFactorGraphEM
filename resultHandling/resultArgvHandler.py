@@ -21,6 +21,7 @@ class ResultCLP:
         ['emLastErrors','-l',True,''],
         ['displayP','-p',True,''],
         ['confidence','-c',True,''],
+        ['readFiles','-f',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -31,6 +32,7 @@ class ResultCLP:
         flags[2][0] : False,
         flags[3][0] : False,
         flags[4][0] : False,
+        flags[5][0] : False
     }
         
     # handle command line parameters

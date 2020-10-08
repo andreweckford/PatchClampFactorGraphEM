@@ -35,19 +35,22 @@ class Results:
     # - (if readP == True) ... the matrix of transition probability estimates
     def parseResults(self,filename = None, reader = None, readParams = True, readEstimates = True, readP = True):
         
+        l = []
+        
         if reader is not None:
             r = reader
+            for i in r:
+                l.append(list(i))
         elif filename is not None:
             with open(filename) as csvfile:
                 r = csv.reader(csvfile)
+                for i in r:
+                    l.append(list(i))
         else:
             r = csv.reader(sys.stdin.readlines())
-    
-        # create a big list of everything in the csv
-        l = []
-        for i in r:
-            l.append(list(i))
-    
+            for i in r:
+                l.append(list(i))
+        
         currentIndex = 0
     
         # what do we do if readParams is not true?

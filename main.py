@@ -12,6 +12,7 @@ from factor.myTools import getSteadyStateDist
 from factor.mainArgvHandler import clp
 from factor.Simulator import Simulator
 import sys
+from factor.list2csv import list2csv,printP
 
 def main(inputData = None):    
 
@@ -177,11 +178,6 @@ def main(inputData = None):
     if params["suppressP"] is False:
         printP(P)
 
-# outputs P as CSV
-def printP(P):
-    numStates = P.shape[0]
-    for i in range(0,numStates):
-        list2csv(P[i,:])
 
 def eStep(P,ionChannels,statemap):
     
@@ -374,10 +370,7 @@ def qratio(a,b):
     
     return a/b
 
-def list2csv(l):
-    for i in range(0,len(l)-1):
-        print(str(l[i])+',',end='')
-    print(str(l[-1]))
+
     
     
 if (__name__ == '__main__'):

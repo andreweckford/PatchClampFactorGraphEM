@@ -49,7 +49,7 @@ class clp:
     def argvHandler(argv):
         
         # improve on help later
-        if (argv[1] == '--help') or (argv[1] == '-h'):
+        if (len(argv) >= 2) and ((argv[1] == '--help') or (argv[1] == '-h')):
             print(clp.flags)
             sys.exit()
         
