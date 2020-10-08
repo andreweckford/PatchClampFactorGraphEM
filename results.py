@@ -66,6 +66,12 @@ def main():
                 
         if (params["displayP"] is True):
             pList.append(r.P)
+
+    for r in rv:
+        
+        if (params["suppressParams"] is False):
+            #list2csv(list(r.params.keys()))
+            list2csv(list(r.params.values()))
                 
     if (params["displayP"] is True):
         for P in pList:
