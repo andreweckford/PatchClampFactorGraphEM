@@ -6,7 +6,7 @@ Created on Tue Sep 29 10:40:38 2020
 @author: andreweckford
 """
 
-from receptors import CFTR,ACh
+from receptors import CFTR,ACh,AChZhang
 import sys
 
 class clp:
@@ -92,10 +92,15 @@ class clp:
             return r
         
         if (rString == "ACh"):
-            # parameter for ACh is concentration in the P0 state
+            # parameter for ACh is concentration in the P0 state, in mol
             r = ACh.Receptor(float(rParams))
             return r
-                    
+        
+        if (rString == "AChZhang"):
+            # parameter for ACh is concentration in the P0 state, in umol
+            r = AChZhang.Receptor(float(rParams))
+            return r
+            
         return None
      
     # prints two csv lines:
