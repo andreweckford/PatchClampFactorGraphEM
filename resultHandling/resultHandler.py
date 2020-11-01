@@ -155,7 +155,7 @@ class Results:
     def emConfErrors(self):
         n = []
         for i in range(0,len(self.emEstimates)):
-            n.append(self.__errorsHelperMissCount(self.emEstimates[i],'-1.0'))
+            n.append(self.__errorsHelperMissCount(self.emEstimates_conf[i],['-1.0']))
         return n
 
         # # 
