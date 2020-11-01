@@ -8,13 +8,13 @@ Created on Mon Aug  3 08:29:17 2020
 
 import numpy as np
 
-numTimeInstants_v = [20000]
-maxEMIterations_v = [400]
+numTimeInstants_v = [2000]
+maxEMIterations_v = [40]
 confidence_v = [0.8]
-C1aXP_v = np.arange(0.05,0.2,0.002)
-numRuns = 4
-num_cores = 4
-coreID = 3
+C1aXP_v = np.arange(0.05,0.1,0.01)
+numRuns = 1
+num_cores = 1
+coreID = 0
 confidenceDigits = 1
 C1aXPDigits = 3
 
@@ -42,10 +42,10 @@ for numTimeInstants in numTimeInstants_v:
                 for run in range(0,numRuns):
                 
                     if (counter % num_cores == coreID):
-                        scriptString = 'python3 main.py ' + str(numTimeInstants)
-                        scriptString += ' ' + str(maxEMIterations) 
-                        scriptString += ' 0.' + mysf(confidence,confidenceDigits)
-                        scriptString += ' 0.' + mysf(C1aXP,C1aXPDigits) 
+                        scriptString = 'python3 main.py -r=CFTR -n=' + str(numTimeInstants)
+                        scriptString += ' -i=' + str(maxEMIterations) 
+                        scriptString += ' -c=0.' + mysf(confidence,confidenceDigits)
+                        scriptString += ' -p=0.' + mysf(C1aXP,C1aXPDigits) 
                         scriptString += ' -l > result' + str(run) 
                         scriptString += '_' + str(numTimeInstants)
                         scriptString += '_' + str(maxEMIterations) 
