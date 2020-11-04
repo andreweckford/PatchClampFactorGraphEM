@@ -22,7 +22,9 @@ class ResultCLP:
         ['displayP','-p',True,''],
         ['confidence','-c',True,''],
         ['readFiles','-f',True,''],
-        ['suppressParams','-s',True,'']
+        ['suppressParams','-s',True,''],
+        ['errorsForTrue','-t',False,'int']
+        #['errorsForEstimate','-e',False,'int']
     ]
 
     # this is where the initial parameters are defined
@@ -34,7 +36,9 @@ class ResultCLP:
         flags[3][0] : False,
         flags[4][0] : False,
         flags[5][0] : False,
-        flags[6][0] : False
+        flags[6][0] : False,
+        flags[7][0] : None
+        #flags[8][0] : None
     }
         
     # handle command line parameters

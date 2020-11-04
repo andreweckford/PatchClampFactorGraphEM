@@ -55,14 +55,27 @@ def main():
     
         else:
             
-            if (params["kpErrors"] is True):
-                kp.append(r.kpErrors())
-                
-            if (params["emErrors"] is True):
-                em.append(list(r.emErrors()))
+            if (params["errorsForTrue"] is None):
             
-            if (params["emLastErrors"] is True):
-                emLast.append(r.emErrors()[-1])
+                if (params["kpErrors"] is True):
+                    kp.append(r.kpErrors())
+                    
+                if (params["emErrors"] is True):
+                    em.append(list(r.emErrors()))
+                
+                if (params["emLastErrors"] is True):
+                    emLast.append(r.emErrors()[-1])
+                    
+            else:
+                
+                if (params["kpErrors"] is True):
+                    kp.append(r.kpStateErrors(params['errorsForTrue']))
+                    
+                if (params["emErrors"] is True):
+                    print("Invalid")
+                
+                if (params["emLastErrors"] is True):
+                    emLast.append(r.emStateErrors(params['errorsForTrue'])[-1])                
                 
         if (params["displayP"] is True):
             pList.append(r.P)

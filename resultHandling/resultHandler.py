@@ -118,8 +118,10 @@ class Results:
     def __errorsHelperOnlyCount(self,v,onlyCount):
         e = 0
         n = 0
+        # v is a vector of floatish strings (like '0.0'), but onlyCount is a list of ints
+        # annoyingly, we can't convert the strings directly to integer
         for i in range(0,len(v)):
-            if (self.states[i] in onlyCount):
+            if (int(float(self.states[i])) in onlyCount):
                 n += 1
                 if (v[i] != self.states[i]):
                     e += 1
@@ -157,6 +159,15 @@ class Results:
         for i in range(0,len(self.emEstimates)):
             n.append(self.__errorsHelperMissCount(self.emEstimates_conf[i],['-1.0']))
         return n
+    
+    def kpStateErrors(self,state):
+        return self.__errorsHelperOnlyCount(self.kp,[state])
+    
+    def emStateErrors(self,state):
+        r = np.zeros(len(self.emEstimates))
+        for i in range(0,len(self.emEstimates)):
+            r[i] = self.__errorsHelperOnlyCount(self.emEstimates[i],[state])
+        return r
 
         # # 
         
