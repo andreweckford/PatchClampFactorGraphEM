@@ -164,10 +164,10 @@ class Results:
         return self.__errorsHelperOnlyCount(self.kp,[state])
     
     def emStateErrors(self,state):
-        r = np.zeros(len(self.emEstimates))
+        n = []
         for i in range(0,len(self.emEstimates)):
-            r[i] = self.__errorsHelperOnlyCount(self.emEstimates[i],[state])
-        return r
+            n.append(self.__errorsHelperOnlyCount(self.emEstimates[i],[state]))
+        return n
 
         # # 
         
