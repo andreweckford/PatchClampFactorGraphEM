@@ -63,7 +63,13 @@ def main(inputData = None):
         ionChannels = inputData
         states = np.zeros(len(inputData))
     else:
-        states,ionChannels = sim.getReceptorState(inputs)
+        if (params["noiseVariance"] == 0.):
+            # no noise
+            states,ionChannels = sim.getReceptorState(inputs)
+        else:
+            # if there is nonzero noise, the observations are still in ionChannels,
+            # and the true ion channel state is in trueIonChannels
+            states,trueIonChannels,ionChannels = sim.getReceptorStateNoisy(inputs,params["noiseVariance"])
 
     # don't print the states if we are suppressing the estimates    
     if (params["suppressEstimates"] is False):
@@ -92,7 +98,7 @@ def main(inputData = None):
     
     # get the state estimates when the system parameters are perfectly known
     # don't print these estimates if we are suppressing the estimates    
-    vvv = eStep(P0,ionChannels,statemap)
+    vvv = eStep(P0,ionChannels,statemap,params["noiseVariance"])
     if (params["suppressEstimates"] is False):
         list2csv(stateGuesses(vvv))
         list2csv(confidentStateGuesses(vvv,params["confidence"]))
@@ -114,7 +120,11 @@ def main(inputData = None):
         for i in range(0,params["numTimeInstants"]):
             # v[i] refers to state variable s_i
             v.append(sp.StateNode())
-            c.append(sp.IonChannelNode(ionChannels[i],statemap))
+            if (params["noiseVariance"] == 0.):
+                # no noise case
+                c.append(sp.IonChannelNode(ionChannels[i],statemap))
+            else:
+                c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,params["noiseVariance"]))
     
         for i in range(0,params["numTimeInstants"]-1):
             # s[i] refers to factor p(s_{i+1} | s_i)
@@ -179,7 +189,7 @@ def main(inputData = None):
         printP(P)
 
 
-def eStep(P,ionChannels,statemap):
+def eStep(P,ionChannels,statemap,sigma2=None):
     
     numStates = len(statemap)
     numTimeInstants = len(ionChannels)
@@ -198,7 +208,12 @@ def eStep(P,ionChannels,statemap):
     for i in range(0,numTimeInstants):
         # v[i] refers to state variable s_i
         v.append(sp.StateNode())
-        c.append(sp.IonChannelNode(ionChannels[i],statemap))
+        if (sigma2 is None) or (sigma2 == 0.):
+            # no noise case
+            c.append(sp.IonChannelNode(ionChannels[i],statemap))
+        else:
+            # case with noise
+            c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,sigma2))
 
     for i in range(0,numTimeInstants-1):
         # s[i] refers to factor p(s_{i+1} | s_i)

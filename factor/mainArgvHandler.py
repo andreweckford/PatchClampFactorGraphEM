@@ -26,7 +26,8 @@ class clp:
         ['suppressEstimates','-se',True,''],
         ['suppressP','-sP',True,''],
         ['suppressParameters','-sq',True,''],
-        ['diagonalBias','-d',False,'float']
+        ['diagonalBias','-d',False,'float'],
+        ['noiseVariance','-v',False,'float']
     ]
 
     # this is where the initial parameters are defined
@@ -42,6 +43,7 @@ class clp:
         flags[7][0] : False,
         flags[8][0] : False,
         flags[9][0] : 0.,
+        flags[10][0] : 0.,
         "validArgv" : True
     }
         

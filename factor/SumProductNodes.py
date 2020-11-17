@@ -31,6 +31,21 @@ class IonChannelNode:
                 r[i] = 0.
         
         return r
+
+class IonChannelNodeNoisy:
+    
+    def __init__(self,o,statemap,sigma2):
+        self.o = o
+        self.statemap = statemap
+        self.sigma2 = sigma2
+        
+    def message(self):
+        r = np.zeros(len(self.statemap))
+        for i in range(0,len(self.statemap)):
+            r[i] = 1/np.sqrt(2*np.pi*self.sigma2) 
+            r[i] *= np.exp(-1/(2*self.sigma2) * np.power(self.o - self.statemap[i],2))
+            
+        return r
     
 class StateNode:
     

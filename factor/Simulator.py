@@ -38,3 +38,12 @@ class Simulator:
             c[i] = self.statemap[int(r[i])]
             
         return r,c
+    
+    # returns three lists, states, ion channels, and noise-corrupted ion channels
+    # noise variance is sigma2 -- this is scaled to the current, which is assumed to be unit
+    def getReceptorStateNoisy(self,x,sigma2):
+        
+        r,c = self.getReceptorState(x)
+        y = np.sqrt(sigma2)*np.random.randn(len(x)) + c
+        
+        return r,c,y
