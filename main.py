@@ -95,6 +95,14 @@ def main(inputData = None):
     # force the initial estimate to be a probability, if it's not already
     for i in range(0,numStates):
         P[i,:] = P[i,:] / np.sum(P[i,:])
+        
+    # initial estimate of sigma2
+    # equal to the true variance if we are not estimating
+    if params["estimateNoiseVariance"] is True:
+        sigma2 = params["initialNoiseVarianceEstimate"]
+    else:
+        sigma2 = params["noiseVariance"]
+        
     
     # get the state estimates when the system parameters are perfectly known
     # don't print these estimates if we are suppressing the estimates    
@@ -124,7 +132,7 @@ def main(inputData = None):
                 # no noise case
                 c.append(sp.IonChannelNode(ionChannels[i],statemap))
             else:
-                c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,params["noiseVariance"]))
+                c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,sigma2))
     
         for i in range(0,params["numTimeInstants"]-1):
             # s[i] refers to factor p(s_{i+1} | s_i)
@@ -163,7 +171,8 @@ def main(inputData = None):
             #print(v[i].leftOutMessage())
             
         # M-step
-            
+        
+        # transition probability matrix estimate
         # numTimeInstants-1 because that is the number of initialized factors
         Q = np.zeros((numStates,numStates))
         for i in range(1,params["numTimeInstants"]-1):
@@ -174,8 +183,15 @@ def main(inputData = None):
             
         for i in range(0,numStates):
             Q[i,:] = Q[i,:] / np.sum(Q[i,:])
-        
+
         P = Q    
+        
+        # noise estimate
+        # we don't estimate the noise if the noise variance is zero, obviously
+        if (params["estimateNoiseVariance"] is True) and (params["noiseVariance"] > 0):
+            Q_sigma2 = estimateNoiseVariance(c,v,ionChannels)
+            #print(Q_sigma2)
+            sigma2 = Q_sigma2
         
         # print the estimates
         # don't print if (a) we're not on the last estimate and lastOnly is true, or
@@ -188,6 +204,26 @@ def main(inputData = None):
     if params["suppressP"] is False:
         printP(P)
 
+# do the M step estimation of the noise variance
+def estimateNoiseVariance(c,v,ionChannels):
+    z2Sum = 0 # sum of squares of channel observations
+    yzSum = 0 # sum of channel obs * E[y_i]
+    y2Sum = 0 # sum of E[y_i^2]
+    
+    # calculate the sums
+    for i in range(0,len(c)):
+        z2Sum += np.power(ionChannels[i],2)
+        
+        # posterior distribution of ion channel state y given everything known
+        foo = c[i].emPosteriori(v[i].aPosterioriNoChannel())
+        
+        # since y \in {0,1}, E[y_i] = E[y_i^2] = foo[1]
+        yzSum += foo[1] * ionChannels[i]
+        y2Sum += np.power(foo[1],2)
+    
+    q = (z2Sum - 2*yzSum + y2Sum)/len(c)
+    return q
+    
 
 def eStep(P,ionChannels,statemap,sigma2=None):
     

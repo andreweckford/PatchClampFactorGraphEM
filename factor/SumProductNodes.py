@@ -47,6 +47,27 @@ class IonChannelNodeNoisy:
             
         return r
     
+    def emPosteriori(self,stateExtrinsicMessage):
+        # stateExtrinsicMessage carries information from the rest of the graph
+        # not including the channel information from this node
+        
+        # extrinsic message for y
+        # first element is y = 0, second element is y = 1
+        emsg_y = np.zeros(2)
+        
+        for i in range(0,len(self.statemap)):
+            if self.statemap[i] == 0:
+                emsg_y[0] += stateExtrinsicMessage[i]
+            else:
+                emsg_y[1] += stateExtrinsicMessage[i]
+                
+        # channel message for y
+        cmsg_y = np.exp(-1/(2*self.sigma2) * np.power(self.o - np.array([0.,1.]),2))
+        cmsg_y *= 1/np.sqrt(2*np.pi*self.sigma2)
+        
+        return (emsg_y * cmsg_y)/np.sum(emsg_y * cmsg_y)
+
+    
 class StateNode:
     
     # left and right messages are np.array vectors (row vectors)
@@ -110,6 +131,20 @@ class StateNode:
         
         return r
     
+    def aPosterioriNoChannel(self):
+        if self.rightInMessage is None:
+            return None
+        
+        if self.leftInMessage is None:
+            return None
+        
+        r = self.rightInMessage * self.leftInMessage
+        if self.normalize is True:
+            return r / np.sum(r)
+        
+        return r
+        
+
 class MarkovFactorNode:
     
     def __init__(self,P,normalize=True):
