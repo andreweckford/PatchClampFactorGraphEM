@@ -29,7 +29,8 @@ class clp:
         ['diagonalBias','-d',False,'float'],
         ['noiseVariance','-v',False,'float'],
         ['initialNoiseVarianceEstimate','-nv',False,'float'],
-        ['estimateNoiseVariance','-ev',True,'']
+        ['estimateNoiseVariance','-ev',True,''],
+        ['inputData','-t',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -48,6 +49,7 @@ class clp:
         flags[10][0] : 0.,
         flags[11][0] : 1.,
         flags[12][0] : False,
+        flags[13][0] : False,
         "validArgv" : True
     }
         
