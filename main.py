@@ -51,10 +51,10 @@ def main(inputData = None):
     # ... for this example we only use input "0"
     # ... so the state transition matrix is given entirely by P0
     # ... and P1 is irrelevant
-    px = np.array([1.,0.])
+    #px = np.array([1.,0.])
     
     # simulator object
-    sim = Simulator(receptorModel,px)
+    sim = Simulator(receptorModel)
     
     # following the above, the inputs are all "0"
     inputs = np.zeros(params["numTimeInstants"])
