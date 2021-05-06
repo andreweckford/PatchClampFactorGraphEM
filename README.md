@@ -1,3 +1,3 @@
-# CFTR
+# PatchClampFactorGraphEM
 
 Todo.
