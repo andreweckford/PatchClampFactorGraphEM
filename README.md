@@ -1,3 +1,3 @@
-# PatchClampEM
+# PatchClampFactorGraphEM
 
 Todo.
