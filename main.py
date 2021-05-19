@@ -12,6 +12,7 @@ from factor.myTools import getSteadyStateDist
 from factor.mainArgvHandler import clp
 from factor.Simulator import Simulator
 import sys
+import csv
 from factor.list2csv import list2csv,printP
 
 def main(inputData = None):    
@@ -19,7 +20,7 @@ def main(inputData = None):
     # default parameters are in clp    
     
     params = clp.argvHandler(sys.argv)
-    
+        
     # exit if the parameters are invalid ... this is not fully implemented yet
     if (params["validArgv"] is False):
         print(params)
@@ -50,23 +51,49 @@ def main(inputData = None):
     # ... for this example we only use input "0"
     # ... so the state transition matrix is given entirely by P0
     # ... and P1 is irrelevant
-    px = np.array([1.,0.])
+    #px = np.array([1.,0.])
     
     # simulator object
-    sim = Simulator(receptorModel,px)
+    sim = Simulator(receptorModel)
     
     # following the above, the inputs are all "0"
     inputs = np.zeros(params["numTimeInstants"])
     
     # sequence of states and channel openings from the simulator
-    if inputData is not None:
-        ionChannels = inputData
-        states = np.zeros(len(inputData))
+    if (inputData is not None) or (params["inputData"] is True):
+        if (params["inputData"] is False):
+            params["inputData"] = True # taking input data from command line so set this flag true
+            ionChannels = inputData
+            states = np.zeros(len(inputData))
+        else:
+            # read data from stdin
+            r = csv.reader(sys.stdin.readlines())
+            for inputData_raw in r:
+                # there should only be one line
+                # when reading from stdin, must convert strings to floats
+                inputData = list(inputData_raw) # makes it the same length
+                for foo in range(0,len(inputData)):
+                    inputData[foo] = float(inputData[foo])
+                ionChannels = inputData
+                states = np.zeros(len(inputData))
+                #print(ionChannels)
+                #sys.exit()
+        params["numTimeInstants"] = len(inputData)
+
+        # default noise variance is zero (which applies to the simulator), which makes the estimator think the observations are noise-free        
+        params["noiseVariance"] = params["initialNoiseVarianceEstimate"] 
+                
     else:
-        states,ionChannels = sim.getReceptorState(inputs)
+        if (params["noiseVariance"] == 0.):
+            # no noise
+            states,ionChannels = sim.getReceptorState(inputs)
+        else:
+            # if there is nonzero noise, the observations are still in ionChannels,
+            # and the true ion channel state is in trueIonChannels
+            states,trueIonChannels,ionChannels = sim.getReceptorStateNoisy(inputs,params["noiseVariance"])
 
     # don't print the states if we are suppressing the estimates    
-    if (params["suppressEstimates"] is False):
+    if (params["suppressEstimates"] is False) and (params["inputData"] is False):
         list2csv(states)
     
     # number of states
@@ -89,15 +116,29 @@ def main(inputData = None):
     # force the initial estimate to be a probability, if it's not already
     for i in range(0,numStates):
         P[i,:] = P[i,:] / np.sum(P[i,:])
+        
+    # initial estimate of sigma2
+    # equal to the true variance if we are not estimating
+    if params["estimateNoiseVariance"] is True:
+        sigma2 = params["initialNoiseVarianceEstimate"]
+    else:
+        sigma2 = params["noiseVariance"]
+        
     
     # get the state estimates when the system parameters are perfectly known
-    # don't print these estimates if we are suppressing the estimates    
-    vvv = eStep(P0,ionChannels,statemap)
-    if (params["suppressEstimates"] is False):
-        list2csv(stateGuesses(vvv))
-        list2csv(confidentStateGuesses(vvv,params["confidence"]))
+    # don't print these estimates if we are suppressing the estimates
+    # also don't print these estimates if there is input data,
+    # because then we don't know the system parameters    
+    if (params["inputData"] is False):
+        vvv = eStep(P0,ionChannels,statemap,params["noiseVariance"])
+        if (params["suppressEstimates"] is False):
+            list2csv(stateGuesses(vvv))
+            list2csv(confidentStateGuesses(vvv,params["confidence"]))
     
     for emIter in range(0,params["maxEMIterations"]):
+        
+        #print(P) ### debug
+        #print(sigma2) ### debug
             
         # fix later ... we changed P from [P0,P1] to just P ...
         # now we are just ignoring px
@@ -111,10 +152,19 @@ def main(inputData = None):
         s = []
         c = []
         
+        #print(params["noiseVariance"]) ### debug
+
+        
         for i in range(0,params["numTimeInstants"]):
             # v[i] refers to state variable s_i
             v.append(sp.StateNode())
-            c.append(sp.IonChannelNode(ionChannels[i],statemap))
+            if (params["noiseVariance"] == 0.):
+                # no noise case
+                c.append(sp.IonChannelNode(ionChannels[i],statemap))
+                #print("Hi!") ### debug
+            else:
+                c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,sigma2))
+                #print("Hello!") ### debug
     
         for i in range(0,params["numTimeInstants"]-1):
             # s[i] refers to factor p(s_{i+1} | s_i)
@@ -153,7 +203,8 @@ def main(inputData = None):
             #print(v[i].leftOutMessage())
             
         # M-step
-            
+        
+        # transition probability matrix estimate
         # numTimeInstants-1 because that is the number of initialized factors
         Q = np.zeros((numStates,numStates))
         for i in range(1,params["numTimeInstants"]-1):
@@ -164,8 +215,15 @@ def main(inputData = None):
             
         for i in range(0,numStates):
             Q[i,:] = Q[i,:] / np.sum(Q[i,:])
-        
+
         P = Q    
+        
+        # noise estimate
+        # we don't estimate the noise if the noise variance is zero, obviously
+        if (params["estimateNoiseVariance"] is True) and (params["noiseVariance"] > 0):
+            Q_sigma2 = estimateNoiseVariance(c,v,ionChannels)
+            #print(Q_sigma2)
+            sigma2 = Q_sigma2
         
         # print the estimates
         # don't print if (a) we're not on the last estimate and lastOnly is true, or
@@ -178,8 +236,28 @@ def main(inputData = None):
     if params["suppressP"] is False:
         printP(P)
 
+# do the M step estimation of the noise variance
+def estimateNoiseVariance(c,v,ionChannels):
+    z2Sum = 0 # sum of squares of channel observations
+    yzSum = 0 # sum of channel obs * E[y_i]
+    y2Sum = 0 # sum of E[y_i^2]
+    
+    # calculate the sums
+    for i in range(0,len(c)):
+        z2Sum += np.power(ionChannels[i],2)
+        
+        # posterior distribution of ion channel state y given everything known
+        foo = c[i].emPosteriori(v[i].aPosterioriNoChannel())
+        
+        # since y \in {0,1}, E[y_i] = E[y_i^2] = foo[1]
+        yzSum += foo[1] * ionChannels[i]
+        y2Sum += np.power(foo[1],2)
+    
+    q = (z2Sum - 2*yzSum + y2Sum)/len(c)
+    return q
+    
 
-def eStep(P,ionChannels,statemap):
+def eStep(P,ionChannels,statemap,sigma2=None):
     
     numStates = len(statemap)
     numTimeInstants = len(ionChannels)
@@ -198,7 +276,12 @@ def eStep(P,ionChannels,statemap):
     for i in range(0,numTimeInstants):
         # v[i] refers to state variable s_i
         v.append(sp.StateNode())
-        c.append(sp.IonChannelNode(ionChannels[i],statemap))
+        if (sigma2 is None) or (sigma2 == 0.):
+            # no noise case
+            c.append(sp.IonChannelNode(ionChannels[i],statemap))
+        else:
+            # case with noise
+            c.append(sp.IonChannelNodeNoisy(ionChannels[i],statemap,sigma2))
 
     for i in range(0,numTimeInstants-1):
         # s[i] refers to factor p(s_{i+1} | s_i)
@@ -376,7 +459,7 @@ def qratio(a,b):
 if (__name__ == '__main__'):
     
     #d = np.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,0.0,0.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,0.0,1.0,1.0,1.0])
-    #main(inputData = d,maxEMIterations=100,lastOnly=True,printP=True)
+    #main(inputData = d)
     main()
     
 
