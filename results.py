@@ -42,7 +42,29 @@ def main():
         
         #r.parseResults() # no parameters -- read from stdin
     
-        if (params["confidence"] is True):
+        if (params["permissiveMD"] is True):
+            
+            if (params["kpErrors"] is True):
+                kp.append(r.pmdErrors(param='kp'))
+                
+            if (params["emErrors"] is True):
+                print("Invalid")
+                
+            if (params["emLastErrors"] is True):
+                emLast.append(r.pmdErrors(param='em'))
+        
+        elif (params["permissiveFA"] is True):
+            
+            if (params["kpErrors"] is True):
+                kp.append(r.pfaErrors(param='kp'))
+                
+            if (params["emErrors"] is True):
+                print("Invalid")
+                
+            if (params["emLastErrors"] is True):
+                emLast.append(r.pfaErrors(param='em'))
+
+        elif (params["confidence"] is True):
     
             if (params["kpErrors"] is True):
                 kp.append(r.kpConfErrors())
@@ -91,15 +113,19 @@ def main():
             printP(P)
 
     if (params["kpErrors"] is True):
-        list2csv(kp)
+        if (params["permissiveMD"] is True) or (params["permissiveFA"] is True):
+            listOfLists2csv(kp)
+        else:
+            list2csv(kp)
             
     if (params["emErrors"] is True):
         listOfLists2csv(em) 
         
     if (params["emLastErrors"] is True):
-        list2csv(emLast)
-
-    
+        if (params["permissiveMD"] is True) or (params["permissiveFA"] is True):
+            listOfLists2csv(emLast)
+        else:
+            list2csv(emLast)
 
 if __name__ == "__main__":
     main()
