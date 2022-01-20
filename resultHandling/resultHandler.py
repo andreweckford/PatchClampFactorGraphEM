@@ -140,7 +140,71 @@ class Results:
                     e += 1
                     
         return np.array([e,n])
-                
+    
+    # if we close (C3) do we correctly detect the next open state?
+    # first reduce the state sequence to only the states at open/close transitions
+    def __openCloseIndices(self,v):
+        # initial state
+        currentLocation = 1
+        closingIndices = []
+        openingIndices = []
+        closedStates = ['0.0','1.0','2.0','5.0','6.0']
+        openStates = ['3.0','4.0']
+        
+        while (currentLocation < len(v)):
+            if (v[currentLocation-1] in closedStates) and (v[currentLocation] in openStates):
+                openingIndices.append(currentLocation)
+            elif (v[currentLocation-1] in openStates) and (v[currentLocation] in closedStates):
+                closingIndices.append(currentLocation)
+            currentLocation += 1
+            
+        return openingIndices,closingIndices
+    
+    def debugOpenCloseIndices(self,v):
+        return self.__openCloseIndices(v)
+    
+    def __errorsHelperPermissiveMD(self,v,md=True):
+        
+        if md:
+            openingIndices,closingIndices = self.__openCloseIndices(self.states)
+        else:
+            openingIndices,closingIndices = self.__openCloseIndices(v)
+        
+        # here we measure with respect to the opening and closing indices for the known states
+        openingErrors = 0
+        closingErrors = 0
+
+        for i in openingIndices:
+            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
+                openingErrors += 1
+        for i in closingIndices:
+            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
+                closingErrors += 1
+                        
+        return openingErrors,closingErrors,len(openingIndices),len(closingIndices)
+
+    
+    # only do known probabilities case to start with ... generalize later
+    def pmdErrors(self,param='kp'):
+        if param == 'kp':
+            return self.__errorsHelperPermissiveMD(self.kp)
+        if param == 'em':
+            return self.__errorsHelperPermissiveMD(self.emEstimates[-1])
+        return None
+
+    def pfaErrors(self,param='kp'):
+        if param == 'kp':
+            return self.__errorsHelperPermissiveMD(self.kp,md=False)
+        if param == 'em':
+            return self.__errorsHelperPermissiveMD(self.emEstimates[-1],md=False)
+        return None
+
+
+
+
+
+
+    
     def kpErrors(self):
         return self.__errorsHelper(self.kp)
     

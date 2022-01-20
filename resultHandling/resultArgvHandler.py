@@ -23,7 +23,9 @@ class ResultCLP:
         ['confidence','-c',True,''],
         ['readFiles','-f',True,''],
         ['suppressParams','-s',True,''],
-        ['errorsForTrue','-t',False,'int']
+        ['errorsForTrue','-t',False,'int'],
+        ['permissiveMD','-m',True,''],
+        ['permissiveFA','-a',True,'']
         #['errorsForEstimate','-e',False,'int']
     ]
 
@@ -37,7 +39,9 @@ class ResultCLP:
         flags[4][0] : False,
         flags[5][0] : False,
         flags[6][0] : False,
-        flags[7][0] : None
+        flags[7][0] : None,
+        flags[8][0] : False,
+        flags[9][0] : False
         #flags[8][0] : None
     }
         
