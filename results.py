@@ -41,6 +41,8 @@ def main():
     for r in rv:
         
         #r.parseResults() # no parameters -- read from stdin
+        
+        print(params)
     
         if (params["permissiveMD"] is True):
             
@@ -63,6 +65,28 @@ def main():
                 
             if (params["emLastErrors"] is True):
                 emLast.append(r.pfaErrors(param='em'))
+                
+        elif (params["permissiveMDOpen"] is True):
+            
+            if (params["kpErrors"] is True):
+                kp.append(r.pmdErrorsOpening(param='kp',openState=params["openState"],closeState=params["closeState"]))
+                
+            if (params["emErrors"] is True):
+                print("Invalid")
+                
+            if (params["emLastErrors"] is True):
+                emLast.append(r.pmdErrorsOpening(param='em',openState=params["openState"],closeState=params["closeState"]))
+
+        elif (params["permissiveMDClosed"] is True):
+
+            if (params["kpErrors"] is True):
+                kp.append(r.pmdErrorsOpening(param='kp', openState=params["openState"], closeState=params["closeState"]))
+
+            if (params["emErrors"] is True):
+                print("Invalid")
+
+            if (params["emLastErrors"] is True):
+                emLast.append(r.pmdErrorsOpening(param='em', openState=params["openState"], closeState=params["closeState"]))
 
         elif (params["confidence"] is True):
     

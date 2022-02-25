@@ -25,8 +25,11 @@ class ResultCLP:
         ['suppressParams','-s',True,''],
         ['errorsForTrue','-t',False,'int'],
         ['permissiveMD','-m',True,''],
-        ['permissiveFA','-a',True,'']
-        #['errorsForEstimate','-e',False,'int']
+        ['permissiveFA','-a',True,''],
+        ['openState','-os',False,'state'],
+        ['closeState','-cs',False,'state'],
+        ['permissiveMDOpen','-y',True,''],
+        ['permissiveMDClosed','-z',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -41,8 +44,11 @@ class ResultCLP:
         flags[6][0] : False,
         flags[7][0] : None,
         flags[8][0] : False,
-        flags[9][0] : False
-        #flags[8][0] : None
+        flags[9][0] : False,
+        flags[10][0] : None,
+        flags[11][0] : None,
+        flags[12][0] : False,
+        flags[13][0] : False
     }
         
     # handle command line parameters
@@ -74,6 +80,9 @@ class ResultCLP:
                                 params[ResultCLP.flags[j][0]] = int(foo[1])
                             elif (ResultCLP.flags[j][3] == 'float'):
                                 params[ResultCLP.flags[j][0]] = float(foo[1])
+                            elif (ResultCLP.flags[j][3] == 'state'):
+                                # open and close methods are expecting states of the form '2.0' for state 2
+                                params[ResultCLP.flags[j][0]] = foo[1] + '.0'
                             else:
                                 params[ResultCLP.flags[j][0]] = foo[1]
         
