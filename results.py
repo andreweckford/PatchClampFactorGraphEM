@@ -42,7 +42,7 @@ def main():
         
         #r.parseResults() # no parameters -- read from stdin
         
-        print(params)
+        # print(params)
     
         if (params["permissiveMD"] is True):
             
