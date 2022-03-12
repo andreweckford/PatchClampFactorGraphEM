@@ -9,6 +9,7 @@ Created on Fri Oct  2 14:03:39 2020
 from resultHandling.resultHandler import Results
 from resultHandling.resultArgvHandler import ResultCLP
 from factor.list2csv import list2csv,printP,listOfLists2csv
+import numpy as np
 import sys
 
 
@@ -40,53 +41,54 @@ def main():
     
     for r in rv:
         
-        #r.parseResults() # no parameters -- read from stdin
-        
-        # print(params)
+        # note, in these lines we cast to np.array to make the output similar to the confidence outputs
+        # because we use similar scripts handle them when we generate plots
+        # and we didn't notice beforehand that the confidence outputs are np.array
+        # ... the code is acquiring a lot of special cases, one of these days we should refactor
     
         if (params["permissiveMD"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(r.pmdErrors(param='kp'))
+                kp.append(np.array(r.pmdErrors(param='kp')))
                 
             if (params["emErrors"] is True):
                 print("Invalid")
                 
             if (params["emLastErrors"] is True):
-                emLast.append(r.pmdErrors(param='em'))
+                emLast.append(np.array(r.pmdErrors(param='em')))
         
         elif (params["permissiveFA"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(r.pfaErrors(param='kp'))
+                kp.append(np.array(r.pfaErrors(param='kp')))
                 
             if (params["emErrors"] is True):
                 print("Invalid")
                 
             if (params["emLastErrors"] is True):
-                emLast.append(r.pfaErrors(param='em'))
+                emLast.append(np.array(r.pfaErrors(param='em')))
                 
         elif (params["permissiveMDOpen"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(r.pmdErrorsOpening(param='kp',openState=params["openState"],closeState=params["closeState"]))
+                kp.append(np.array(r.pmdErrorsOpening(param='kp',openState=params["openState"],closeState=params["closeState"])))
                 
             if (params["emErrors"] is True):
                 print("Invalid")
                 
             if (params["emLastErrors"] is True):
-                emLast.append(r.pmdErrorsOpening(param='em',openState=params["openState"],closeState=params["closeState"]))
+                emLast.append(np.array(r.pmdErrorsOpening(param='em',openState=params["openState"],closeState=params["closeState"])))
 
         elif (params["permissiveMDClosed"] is True):
 
             if (params["kpErrors"] is True):
-                kp.append(r.pmdErrorsOpening(param='kp', openState=params["openState"], closeState=params["closeState"]))
+                kp.append(np.array(r.pmdErrorsOpening(param='kp', openState=params["openState"], closeState=params["closeState"])))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(r.pmdErrorsOpening(param='em', openState=params["openState"], closeState=params["closeState"]))
+                emLast.append(np.array(r.pmdErrorsOpening(param='em', openState=params["openState"], closeState=params["closeState"])))
 
         elif (params["confidence"] is True):
     
@@ -138,7 +140,7 @@ def main():
 
     if (params["kpErrors"] is True):
         if (params["permissiveMD"] is True) or (params["permissiveFA"] is True):
-            listOfLists2csv(kp)
+            list2csv(kp)
         else:
             list2csv(kp)
             
@@ -147,7 +149,7 @@ def main():
         
     if (params["emLastErrors"] is True):
         if (params["permissiveMD"] is True) or (params["permissiveFA"] is True):
-            listOfLists2csv(emLast)
+            list2csv(emLast)
         else:
             list2csv(emLast)
 
