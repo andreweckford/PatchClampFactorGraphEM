@@ -282,18 +282,18 @@ def bpr_fa(r,doOpenStates=False,conf=False,getEmResults=True):
         for j in open_kp[i]:
             if doOpenStates is True:
                 if (states[j] in closedStates) and (kp[j-1] in openStates):
-                    kpWrongWay += 1
+                    kpWrongWay[i] += 1
             else:
                 if (states[j] in openStates) and (kp[j-1] in closedStates):
-                    kpWrongWay += 1
+                    kpWrongWay[i] += 1
                     
         for j in open_em[i]:
             if doOpenStates is True:
                 if (states[j] in closedStates) and (kp[j-1] in openStates):
-                    emWrongWay += 1
+                    emWrongWay[i] += 1
             else:
                 if (states[j] in openStates) and (kp[j-1] in closedStates):
-                    emWrongWay += 1
+                    emWrongWay[i] += 1
 
                      
     #print(kpWrongWay)
