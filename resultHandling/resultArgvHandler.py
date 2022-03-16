@@ -25,11 +25,7 @@ class ResultCLP:
         ['suppressParams','-s',True,''],
         ['errorsForTrue','-t',False,'int'],
         ['permissiveMD','-m',True,''],
-        ['permissiveFA','-a',True,''],
-        ['openState','-os',False,'state'],
-        ['closeState','-cs',False,'state'],
-        ['permissiveMDOpen','-y',True,''],
-        ['permissiveMDClosed','-z',True,'']
+        ['permissiveFA','-a',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -44,11 +40,7 @@ class ResultCLP:
         flags[6][0] : False,
         flags[7][0] : None,
         flags[8][0] : False,
-        flags[9][0] : False,
-        flags[10][0] : None,
-        flags[11][0] : None,
-        flags[12][0] : False,
-        flags[13][0] : False
+        flags[9][0] : False
     }
         
     # handle command line parameters
@@ -75,7 +67,7 @@ class ResultCLP:
                         # if not bare, extract the parameter
                         foo = argv[i].split('=')
                         if (len(foo) == 2):
-                            # find the correct data type
+                            # find the correct data type - some of these are unused in this package
                             if (ResultCLP.flags[j][3] == 'int'):
                                 params[ResultCLP.flags[j][0]] = int(foo[1])
                             elif (ResultCLP.flags[j][3] == 'float'):

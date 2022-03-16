@@ -141,183 +141,21 @@ class Results:
                     
         return np.array([e,n])
     
-    # if we close (C3) do we correctly detect the next open state?
-    # first reduce the state sequence to only the states at open/close transitions
-    def __openCloseIndices(self,v):
-        # initial state
+    # only looks for a particular transition from one state to another
+    # records the index for the **end** of the transition
+    def transition(self,v,firstState,lastState):
+        # find a specific transition
         currentLocation = 1
-        closingIndices = []
-        openingIndices = []
-        closedStates = ['0.0','1.0','2.0','5.0','6.0']
-        openStates = ['3.0','4.0']
+        transitionIndices = []
         
         while (currentLocation < len(v)):
             
-            if (v[currentLocation-1] in closedStates) and (v[currentLocation] in openStates):
-                openingIndices.append(currentLocation)
-            elif (v[currentLocation-1] in openStates) and (v[currentLocation] in closedStates):
-                closingIndices.append(currentLocation)
+            if (v[currentLocation-1] == firstState) and (v[currentLocation] == lastState):
+                transitionIndices.append(currentLocation)
+            
             currentLocation += 1
             
-        return openingIndices,closingIndices
-    
-    # gets only indices where the channel opens (i.e. goes from closed to open)
-    # if openState is specified, only gets indices where the opening state is openState
-    # if closeState is specified, only gets indices where the closed state is closeState
-    def __openIndices(self,v,openState=None,closeState=None):
-        # initial state
-        currentLocation = 1
-        openingIndices = []
-        closedStates = ['0.0','1.0','2.0','5.0','6.0']
-        openStates = ['3.0','4.0']
-        
-        while (currentLocation < len(v)):
-            
-            if (v[currentLocation-1] in closedStates) and (v[currentLocation] in openStates):
-                if (openState is None) and (closeState is None):
-                    openingIndices.append(currentLocation)
-                elif (openState is None) and (closeState == v[currentLocation-1]):
-                    openingIndices.append(currentLocation)
-                elif (openState == v[currentLocation]) and (closeState is None):
-                    openingIndices.append(currentLocation)
-                elif (openState == v[currentLocation]) and (closeState == v[currentLocation-1]):
-                    openingIndices.append(currentLocation)
-            currentLocation += 1
-            
-        return openingIndices
-    
-    # gets only indices where the channel opens (i.e. goes from closed to open)
-    # if openState is specified, only gets indices where the opening state is openState
-    # if closeState is specified, only gets indices where the closed state is closeState
-    def __closeIndices(self,v,openState=None,closeState=None):
-        # initial state
-        currentLocation = 1
-        closingIndices = []
-        closedStates = ['0.0','1.0','2.0','5.0','6.0']
-        openStates = ['3.0','4.0']
-        
-        while (currentLocation < len(v)):
-            
-            if (v[currentLocation-1] in openStates) and (v[currentLocation] in closedStates):
-                if (openState is None) and (closeState is None):
-                    closingIndices.append(currentLocation)
-                elif (openState is None) and (closeState == v[currentLocation]):
-                    closingIndices.append(currentLocation)
-                elif (openState == v[currentLocation-1]) and (closeState is None):
-                    closingIndices.append(currentLocation)
-                elif (openState == v[currentLocation-1]) and (closeState == v[currentLocation]):
-                    closingIndices.append(currentLocation)
-            currentLocation += 1
-            
-        return closingIndices
-    
-    def debugOpenCloseIndices(self,v):
-        return self.__openCloseIndices(v),self.__openIndices(v,openState='3.0'),self.__closeIndices(v)
-    
-    def __errorsHelperPermissiveMD(self,v,md=True):
-        
-        if md:
-            openingIndices,closingIndices = self.__openCloseIndices(self.states)
-        else:
-            openingIndices,closingIndices = self.__openCloseIndices(v)
-        
-        # here we measure with respect to the opening and closing indices for the known states
-        openingErrors = 0
-        closingErrors = 0
-
-        for i in openingIndices:
-            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
-                openingErrors += 1
-        for i in closingIndices:
-            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
-                closingErrors += 1
-                        
-        return openingErrors,closingErrors,len(openingIndices),len(closingIndices)
-
-    def __errorsHelperPermissiveMDOpening(self,v,md=True,openState=None,closeState=None):
-        
-        if md:
-            openingIndices = self.__openIndices(self.states,openState=openState,closeState=closeState)
-        else:
-            openingIndices = self.__openIndices(v,openState=openState,closeState=closeState)
-        
-        # here we measure with respect to the opening indices for the known states
-        openingErrors = 0
-
-        for i in openingIndices:
-            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
-                openingErrors += 1
-                        
-        return openingErrors,len(openingIndices)
-    
-    def __errorsHelperPermissiveMDClosing(self,v,md=True,openState=None,closeState=None):
-        
-        if md:
-            closingIndices = self.__closeIndices(self.states,openState=openState,closeState=closeState)
-        else:
-            closingIndices = self.__closeIndices(v,openState=openState,closeState=closeState)
-        
-        # here we measure with respect to the opening indices for the known states
-        closingErrors = 0
-
-        for i in closingIndices:
-            if (self.states[i] != v[i]) or (self.states[i-1] != v[i-1]):
-                closingErrors += 1
-                        
-        return closingErrors,len(closingIndices)
-
-    # only do known probabilities case to start with ... generalize later
-    def pmdErrors(self,param='kp'):
-        if param == 'kp':
-            #print(self.debugOpenCloseIndices(self.kp))
-            #print(self.__errorsHelperPermissiveMDOpening(self.kp,closeState='2.0'))
-            #print(self.__errorsHelperPermissiveMDClosing(self.kp,openState='4.0'))
-            #
-            return list(self.__errorsHelperPermissiveMD(self.kp))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMD(self.emEstimates[-1]))
-        return None
-    
-    def pmdErrorsOpening(self,param='kp',openState=None,closeState=None):
-        if param == 'kp':
-            return list(self.__errorsHelperPermissiveMDOpening(self.kp,openState=openState,closeState=closeState))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMDOpening(self.emEstimates[-1],openState=openState,closeState=closeState))
-        return None
-    
-    def pmdErrorsClosing(self,param='kp',openState=None,closeState=None):
-        if param == 'kp':
-            return list(self.__errorsHelperPermissiveMDClosing(self.kp,openState=openState,closeState=closeState))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMDClosing(self.emEstimates[-1],openState=openState,closeState=closeState))
-        return None
-
-
-    def pfaErrors(self,param='kp'):
-        if param == 'kp':
-            return list(self.__errorsHelperPermissiveMD(self.kp,md=False))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMD(self.emEstimates[-1],md=False))
-        return None
-
-    def pfaErrorsOpening(self,param='kp',openState=None,closeState=None):
-        if param == 'kp':
-            return list(self.__errorsHelperPermissiveMDOpening(self.kp,md=False,openState=openState,closeState=closeState))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMDOpening(self.emEstimates[-1],md=False,openState=openState,closeState=closeState))
-        return None
-    
-    def pfaErrorsClosing(self,param='kp',openState=None,closeState=None):
-        if param == 'kp':
-            return list(self.__errorsHelperPermissiveMDClosing(self.kp,md=False,openState=openState,closeState=closeState))
-        if param == 'em':
-            return list(self.__errorsHelperPermissiveMDClosing(self.emEstimates[-1],md=False,openState=openState,closeState=closeState))
-        return None
-  
-
-
-
-
+        return transitionIndices
     
     def kpErrors(self):
         return self.__errorsHelper(self.kp)
@@ -347,29 +185,4 @@ class Results:
             n.append(self.__errorsHelperOnlyCount(self.emEstimates[i],[state]))
         return n
 
-        # # 
-        
-        # m = None
-        # for i in r:
-        #     z = np.array([float(k) for k in list(i)])
-        #     if m is None:
-        #         m = z
-        #     else:
-        #         m = np.vstack((m,z))
-    
-        # em_iter = int((m.shape[0]-3)/2)
-        # numTimeInstants = int(m.shape[1])
-    
-        # kp_err = 0
-        # em_err = np.zeros(em_iter)
-        # em_conf_err = np.zeros(em_iter)
-        # for i in range(0,m.shape[1]):
-        #     if m[0,i] != m[1,i]:
-        #         kp_err += 1
-        #     for k in range(0,em_iter):
-        #         if (m[0,i] != m[2*k+3,i]):
-        #             em_err[k] += 1
-    
-        # r_em[q] += em_err[-1]
-        # r_kp[q] += kp_err
-    
+

@@ -11,6 +11,7 @@ from resultHandling.resultArgvHandler import ResultCLP
 from factor.list2csv import list2csv,printP,listOfLists2csv
 import numpy as np
 import sys
+from bpr import bpr_md,bpr_fa
 
 
 def main():  
@@ -49,46 +50,24 @@ def main():
         if (params["permissiveMD"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(np.array(r.pmdErrors(param='kp')))
-                
+                kp.append(np.array(bpr_md(r,conf=params["confidence"],getEmResults=False)))
+
             if (params["emErrors"] is True):
                 print("Invalid")
-                
+
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(r.pmdErrors(param='em')))
+                emLast.append(np.array(bpr_md(r,conf=params["confidence"],getEmResults=True)))
         
         elif (params["permissiveFA"] is True):
-            
-            if (params["kpErrors"] is True):
-                kp.append(np.array(r.pfaErrors(param='kp')))
-                
-            if (params["emErrors"] is True):
-                print("Invalid")
-                
-            if (params["emLastErrors"] is True):
-                emLast.append(np.array(r.pfaErrors(param='em')))
-                
-        elif (params["permissiveMDOpen"] is True):
-            
-            if (params["kpErrors"] is True):
-                kp.append(np.array(r.pmdErrorsOpening(param='kp',openState=params["openState"],closeState=params["closeState"])))
-                
-            if (params["emErrors"] is True):
-                print("Invalid")
-                
-            if (params["emLastErrors"] is True):
-                emLast.append(np.array(r.pmdErrorsOpening(param='em',openState=params["openState"],closeState=params["closeState"])))
-
-        elif (params["permissiveMDClosed"] is True):
 
             if (params["kpErrors"] is True):
-                kp.append(np.array(r.pmdErrorsOpening(param='kp', openState=params["openState"], closeState=params["closeState"])))
+                kp.append(np.array(bpr_fa(r,conf=params["confidence"],getEmResults=False)))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(r.pmdErrorsOpening(param='em', openState=params["openState"], closeState=params["closeState"])))
+                emLast.append(np.array(bpr_fa(r,conf=params["confidence"],getEmResults=True)))
 
         elif (params["confidence"] is True):
     
