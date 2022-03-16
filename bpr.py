@@ -126,17 +126,17 @@ def bpr_md(r,doOpenStates=True,conf=False,getEmResults=True):
         if doOpenStates is True:
             for j in open_gt[i]:
                 if (kp[j] in closedStates) and (kp[j-1] in openStates):
-                    kpWrongWay += 1
+                    kpWrongWay[i] += 1
             for j in open_gt[i]:
                 if (em[j] in closedStates) and (em[j-1] in openStates):
-                    emWrongWay += 1
+                    emWrongWay[i] += 1
         else:
             for j in open_gt[i]:
                 if (kp[j] in openStates) and (kp[j-1] in closedStates):
-                    kpWrongWay += 1
+                    kpWrongWay[i] += 1
             for j in open_gt[i]:
                 if (em[j] in openStates) and (em[j-1] in closedStates):
-                    emWrongWay += 1
+                    emWrongWay[i] += 1
 
 
                      
