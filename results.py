@@ -11,7 +11,7 @@ from resultHandling.resultArgvHandler import ResultCLP
 from factor.list2csv import list2csv,printP,listOfLists2csv
 import numpy as np
 import sys
-from bpr import bpr_md,bpr_fa
+from bpr import bpr_md,bpr_fa,openToCloseIntervals
 
 
 def main():  
@@ -47,7 +47,15 @@ def main():
         # and we didn't notice beforehand that the confidence outputs are np.array
         # ... the code is acquiring a lot of special cases, one of these days we should refactor
     
-        if (params["permissiveMD"] is True):
+        if (params["openIntervals"] is True):
+            list2csv(openToCloseIntervals(r,openings=True))
+            sys.exit()
+            
+        elif (params["closedIntervals"] is True):
+            list2csv(openToCloseIntervals(r,openings=False))
+            sys.exit()
+        
+        elif (params["permissiveMD"] is True):
             
             if (params["kpErrors"] is True):
                 kp.append(np.array(bpr_md(r,conf=params["confidence"],getEmResults=False)))

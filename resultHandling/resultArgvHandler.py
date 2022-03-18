@@ -25,7 +25,9 @@ class ResultCLP:
         ['suppressParams','-s',True,''],
         ['errorsForTrue','-t',False,'int'],
         ['permissiveMD','-m',True,''],
-        ['permissiveFA','-a',True,'']
+        ['permissiveFA','-a',True,''],
+        ['openIntervals','-ov',True,''],
+        ['closedIntervals','-zv',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -40,7 +42,9 @@ class ResultCLP:
         flags[6][0] : False,
         flags[7][0] : None,
         flags[8][0] : False,
-        flags[9][0] : False
+        flags[9][0] : False,
+        flags[10][0] : False,
+        flags[11][0] : False
     }
         
     # handle command line parameters

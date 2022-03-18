@@ -40,6 +40,9 @@ def bpr_md(r,doOpenStates=True,conf=False,getEmResults=True):
         kp = r.kp
         em = r.emEstimates[-1]
 
+    # this code was initially written with channel openings in mind
+    # so some of the variable names refer only to openings, e.g. open_kp, open_em
+    # however, if doOpenStates is false, we handle channel closings rather than openings
     if doOpenStates is True:
         iterate_v = openTransition_v
     else:
@@ -193,6 +196,9 @@ def bpr_fa(r,doOpenStates=False,conf=False,getEmResults=True):
         kp = r.kp
         em = r.emEstimates[-1]
 
+    # this code was initially written with channel openings in mind
+    # so some of the variable names refer only to openings, e.g. open_kp, open_em
+    # however, if doOpenStates is false, we handle channel closings rather than openings
     if doOpenStates is True:
         iterate_v = openTransition_v
     else:
@@ -323,4 +329,42 @@ def bpr_fa(r,doOpenStates=False,conf=False,getEmResults=True):
         foo = [i for s in kpResult for i in s]
         
     return foo
+    
+def openToCloseIntervals(r,openings=True):
+
+    openStates = ['3.0','4.0']
+    closedStates = ['0.0','1.0','2.0','5.0','6.0']
+    
+    index = 0
+    intervalCounter = 0
+    openIntervals = []
+    closedIntervals = []
+    
+    if r.emEstimates[-1][0] in openStates:
+        indexOpen = True
+    else:
+        indexOpen = False
+        
+    for i in range(1,len(r.emEstimates[-1])):
+        if indexOpen is True:
+            if r.emEstimates[-1][i] in openStates:
+                intervalCounter += 1
+            else:
+                indexOpen = False
+                openIntervals.append(intervalCounter)
+                intervalCounter = 0
+        else:
+            if r.emEstimates[-1][i] in closedStates:
+                intervalCounter += 1
+            else:
+                indexOpen = True
+                closedIntervals.append(intervalCounter)
+                intervalCounter = 0
+    
+    if openings is True:
+        return openIntervals
+        
+    return closedIntervals
+    
+    
 
