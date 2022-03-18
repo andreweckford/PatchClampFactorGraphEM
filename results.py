@@ -58,24 +58,24 @@ def main():
         elif (params["permissiveMD"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(np.array(bpr_md(r,conf=params["confidence"],getEmResults=False)))
+                kp.append(np.array(bpr_md(r,doOpenStates=False,conf=params["confidence"],getEmResults=False)))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(bpr_md(r,conf=params["confidence"],getEmResults=True)))
+                emLast.append(np.array(bpr_md(r,doOpenStates=False,conf=params["confidence"],getEmResults=True)))
         
         elif (params["permissiveFA"] is True):
 
             if (params["kpErrors"] is True):
-                kp.append(np.array(bpr_fa(r,conf=params["confidence"],getEmResults=False)))
+                kp.append(np.array(bpr_fa(r,doOpenStates=False,conf=params["confidence"],getEmResults=False)))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(bpr_fa(r,conf=params["confidence"],getEmResults=True)))
+                emLast.append(np.array(bpr_fa(r,doOpenStates=False,conf=params["confidence"],getEmResults=True)))
 
         elif (params["confidence"] is True):
     
