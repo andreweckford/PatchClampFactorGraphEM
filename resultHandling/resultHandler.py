@@ -156,7 +156,7 @@ class Results:
             currentLocation += 1
             
         return transitionIndices
-    
+        
     def kpErrors(self):
         return self.__errorsHelper(self.kp)
     

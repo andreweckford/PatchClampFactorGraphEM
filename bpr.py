@@ -329,7 +329,7 @@ def bpr_fa(r,doOpenStates=False,conf=False,getEmResults=True):
         foo = [i for s in kpResult for i in s]
         
     return foo
-    
+
 def openToCloseIntervals(r,openings=True):
 
     openStates = ['3.0','4.0']

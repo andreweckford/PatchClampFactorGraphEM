@@ -47,7 +47,13 @@ def main():
         # and we didn't notice beforehand that the confidence outputs are np.array
         # ... the code is acquiring a lot of special cases, one of these days we should refactor
     
-        if (params["openIntervals"] is True):
+        if (params["transitionInitial"] is not None) and (params["transitionFinal"] is not None):
+            foo = r.transition(r.emEstimates[-1],params["transitionInitial"],params["transitionFinal"])
+            if len(foo) > 0:
+                list2csv(r.transition(r.emEstimates[-1],params["transitionInitial"],params["transitionFinal"]))
+            sys.exit()
+        
+        elif (params["openIntervals"] is True):
             list2csv(openToCloseIntervals(r,openings=True))
             sys.exit()
             
