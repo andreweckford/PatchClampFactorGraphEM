@@ -33,12 +33,12 @@ def main():
             # strip trailing whitespace and \n
             fn = fn.rstrip()
             rv.append(Results())
-            rv[-1].parseResults(filename=fn)
+            rv[-1].parseResults(filename=fn,rawData=params["rawData"])
             
     # if not, we read one set of results directly from stdin
     else:
         rv.append(Results())
-        rv[-1].parseResults() # no parameters -- read from stdin    
+        rv[-1].parseResults(rawData=params["rawData"]) # no parameters -- read from stdin
     
     for r in rv:
         
@@ -48,9 +48,12 @@ def main():
         # ... the code is acquiring a lot of special cases, one of these days we should refactor
     
         if (params["transitionInitial"] is not None) and (params["transitionFinal"] is not None):
-            foo = r.transition(r.emEstimates[-1],params["transitionInitial"],params["transitionFinal"])
+            if (params["confidence"] is True):
+                foo = r.transition(r.emEstimates_conf[-1],params["transitionInitial"],params["transitionFinal"])
+            else:
+                foo = r.transition(r.emEstimates[-1],params["transitionInitial"],params["transitionFinal"])
             if len(foo) > 0:
-                list2csv(r.transition(r.emEstimates[-1],params["transitionInitial"],params["transitionFinal"]))
+                list2csv(foo)
             sys.exit()
         
         elif (params["openIntervals"] is True):

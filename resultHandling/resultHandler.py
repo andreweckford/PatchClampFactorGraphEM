@@ -33,7 +33,7 @@ class Results:
     # -- next line is the state estimate with known parameters, with non-confident estimates blanked out (with -1)
     # -- next: if lastOnly is True, two more lines with the EM estimates; if lastOnly is False, two lines for each EM iteration
     # - (if readP == True) ... the matrix of transition probability estimates
-    def parseResults(self,filename = None, reader = None, readParams = True, readEstimates = True, readP = True):
+    def parseResults(self,filename=None, reader=None, readParams=True, rawData=False, readP=True):
         
         l = []
         
@@ -60,8 +60,11 @@ class Results:
             currentIndex = 2
         else:
             self.params = dict(clp.initParams) # remember to use the copy constructor
-            
-        if (readEstimates is True):
+        
+        # use readEstimates to indicate whether the input is from simulated or real data
+        # if True, simulated; we read known states and estimates with known parameters as well as results
+        # if False, real; we only read results
+        if (rawData is False):
             
             # known states
             self.states = l[currentIndex]
@@ -74,25 +77,25 @@ class Results:
             
             currentIndex += 3
             
-            self.emEstimates = []
-            self.emEstimates_conf = []
-            
-            # parsed parameters are strings here
-            # in the future, maybe cast to boolean?
-            if (self.params["lastOnly"] == "True"):
-                numEstimates = 1
-            else:
-                numEstimates = self.params["maxEMIterations"]
-    
-            for i in range(0,numEstimates):
-                self.emEstimates.append(l[currentIndex])
-                self.emEstimates_conf.append(l[currentIndex + 1])
-                currentIndex += 2
-    
-            # the last EM estimates are particularly important ... store here
-            self.last = l[currentIndex - 2]
-            self.last_conf = l[currentIndex - 1]            
+        self.emEstimates = []
+        self.emEstimates_conf = []
         
+        # parsed parameters are strings here
+        # in the future, maybe cast to boolean?
+        if (self.params["lastOnly"] == "True"):
+            numEstimates = 1
+        else:
+            numEstimates = self.params["maxEMIterations"]
+
+        for i in range(0,numEstimates):
+            self.emEstimates.append(l[currentIndex])
+            self.emEstimates_conf.append(l[currentIndex + 1])
+            currentIndex += 2
+
+        # the last EM estimates are particularly important ... store here
+        self.last = l[currentIndex - 2]
+        self.last_conf = l[currentIndex - 1]
+    
         if (readP is True):
             # what's the receptor?
             q = clp.createReceptor(self.params["receptor"],self.params["receptorParameter"])

@@ -29,7 +29,8 @@ class ResultCLP:
         ['openIntervals','-ov',True,''],
         ['closedIntervals','-zv',True,''],
         ['transitionInitial','-qi',False,'state'],
-        ['transitionFinal','-qf',False,'state']
+        ['transitionFinal','-qf',False,'state'],
+        ['rawData','-u',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -48,7 +49,8 @@ class ResultCLP:
         flags[10][0] : False,
         flags[11][0] : False,
         flags[12][0] : None,
-        flags[13][0] : None
+        flags[13][0] : None,
+        flags[14][0] : False
     }
         
     # handle command line parameters
