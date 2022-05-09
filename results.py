@@ -11,7 +11,7 @@ from resultHandling.resultArgvHandler import ResultCLP
 from factor.list2csv import list2csv,printP,listOfLists2csv
 import numpy as np
 import sys
-from bpr import bpr_md,bpr_fa,openToCloseIntervals
+from bpr import bpr_md_new,bpr_fa_new,openToCloseIntervals
 
 
 def main():  
@@ -67,24 +67,24 @@ def main():
         elif (params["permissiveMD"] is True):
             
             if (params["kpErrors"] is True):
-                kp.append(np.array(bpr_md(r,doOpenStates=False,conf=params["confidence"],getEmResults=False)))
+                kp.append(np.array(bpr_md_new(r,conf=params["confidence"],getEmResults=False)))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(bpr_md(r,doOpenStates=False,conf=params["confidence"],getEmResults=True)))
+                emLast.append(np.array(bpr_md_new(r,conf=params["confidence"],getEmResults=True)))
         
         elif (params["permissiveFA"] is True):
 
             if (params["kpErrors"] is True):
-                kp.append(np.array(bpr_fa(r,doOpenStates=False,conf=params["confidence"],getEmResults=False)))
+                kp.append(np.array(bpr_fa_new(r,conf=params["confidence"],getEmResults=False)))
 
             if (params["emErrors"] is True):
                 print("Invalid")
 
             if (params["emLastErrors"] is True):
-                emLast.append(np.array(bpr_fa(r,doOpenStates=False,conf=params["confidence"],getEmResults=True)))
+                emLast.append(np.array(bpr_fa_new(r,conf=params["confidence"],getEmResults=True)))
 
         elif (params["confidence"] is True):
     

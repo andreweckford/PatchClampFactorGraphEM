@@ -160,6 +160,9 @@ class Results:
             
         return transitionIndices
         
+    def findPermissive(self,v,firstState,lastState):
+        pass
+        
     def kpErrors(self):
         return self.__errorsHelper(self.kp)
     
