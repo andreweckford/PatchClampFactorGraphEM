@@ -11,7 +11,7 @@ from resultHandling.resultArgvHandler import ResultCLP
 from factor.list2csv import list2csv,printP,listOfLists2csv
 import numpy as np
 import sys
-from bpr import bpr_md_new,bpr_fa_new,openToCloseIntervals
+from bpr import bpr_md_new,bpr_fa_new,openToCloseIntervals,countClosings
 
 
 def main():  
@@ -23,6 +23,7 @@ def main():
     rv = [] # list of result objects
     kp = []
     em = []
+    cc = []
     emLast = []
     pList = []
     
@@ -63,6 +64,9 @@ def main():
         elif (params["closedIntervals"] is True):
             list2csv(openToCloseIntervals(r,openings=False))
             sys.exit()
+
+        elif (params["countClosings"] is True):
+            cc.append(np.array(countClosings(r.states)))
         
         elif (params["permissiveMD"] is True):
             
@@ -133,6 +137,9 @@ def main():
     if (params["displayP"] is True):
         for P in pList:
             printP(P)
+
+    if (params["countClosings"]) is True:
+        list2csv(cc)
 
     if (params["kpErrors"] is True):
         if (params["permissiveMD"] is True) or (params["permissiveFA"] is True):

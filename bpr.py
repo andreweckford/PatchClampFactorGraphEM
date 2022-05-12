@@ -63,6 +63,18 @@ def getIndexOfNextState(v,start,state):
 def nextOpen(v,index):
     return getIndexOfNextState(v,index,['3.0','4.0'])
 
+def countClosings(v):
+    
+    # 3 to 2 cannot possibly be nonpermissive
+    c32 = transition(v,'3.0','2.0')
+    c45 = transition(v,'4.0','5.0')
+    
+    npc45 = 0
+    for i in c45:
+        if isNonPermissiveClosing(v,i):
+            npc45 += 1
+    
+    return [len(c32)+len(c45),npc45]
 
 def bpr_md_new(r,conf=False,getEmResults=True):
     
@@ -88,11 +100,14 @@ def bpr_md_new(r,conf=False,getEmResults=True):
             md_n += 1
             if isNonPermissiveClosing(comparison,t[i]):
                 md += 1
-            if comparison_conf[nextOpen(comparison,t[i])] != '-1.0' and comparison_conf[t[i]] != '-1.0':
-                mdc_n += 1
-                if isNonPermissiveClosing(comparison,t[i]):
-                    mdc += 1
-    
+            qqq = nextOpen(comparison,t[i])
+            if (qqq != np.Inf):
+                if comparison_conf[qqq] != '-1.0' and comparison_conf[t[i]] != '-1.0':
+                    if isNonPermissiveClosing(comparison,t[i]):
+                        mdc += 1
+
+    mdc_n = md_n
+
     if conf is True:
         return [mdc_n,mdc]
         
@@ -121,10 +136,12 @@ def bpr_fa_new(r,conf=False,getEmResults=True):
             fa_n += 1
             if isNonPermissiveClosing(r.states,t[i]):
                 fa += 1
-            if comparison_conf[nextOpen(comparison,t[i])] != '-1.0' and comparison_conf[t[i]] != '-1.0':
-                fac_n += 1
-                if isNonPermissiveClosing(r.states,t[i]):
-                    fac += 1
+            qqq = nextOpen(comparison,t[i])
+            if qqq != np.Inf:
+                if comparison_conf[qqq] != '-1.0' and comparison_conf[t[i]] != '-1.0':
+                    fac_n += 1
+                    if isNonPermissiveClosing(r.states,t[i]):
+                        fac += 1
     
     if conf is True:
         return [fac_n,fac]

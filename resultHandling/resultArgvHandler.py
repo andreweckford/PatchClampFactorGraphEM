@@ -30,7 +30,8 @@ class ResultCLP:
         ['closedIntervals','-zv',True,''],
         ['transitionInitial','-qi',False,'state'],
         ['transitionFinal','-qf',False,'state'],
-        ['rawData','-u',True,'']
+        ['rawData','-u',True,''],
+        ['countClosings','-x',True,'']
     ]
 
     # this is where the initial parameters are defined
@@ -50,7 +51,8 @@ class ResultCLP:
         flags[11][0] : False,
         flags[12][0] : None,
         flags[13][0] : None,
-        flags[14][0] : False
+        flags[14][0] : False,
+        flags[15][0] : False
     }
         
     # handle command line parameters
