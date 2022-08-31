@@ -30,11 +30,14 @@ class Receptor:
         
         dt = 0.01
         
-        self.P0 = np.eye(7) + R*dt
-        
-        # C1aExitProb is [ATP] * 9000
-        self.P0[0,0] = 1-C1aExitProb
-        self.P0[0,1] = C1aExitProb
+        # we specify C1aExitProbability to stay compatible with earlier versions
+        # but what it really means is the out rate from C1a normalized by dt
+        R[0,0] = -1*C1aExitProb/dt
+        R[0,1] = C1aExitProb/dt
+
+        #self.P0 = np.eye(7) + R*dt
+        self.P0 = expm(dt*R)
+
 
         self.P1 = None # self.P1 used to have meaning but is now unused
         
