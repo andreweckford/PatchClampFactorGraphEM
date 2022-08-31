@@ -7,6 +7,7 @@ Created on Fri May 29 09:43:29 2020
 """
 
 import numpy as np
+from scipy.linalg import expm
 
 # Edit this file to change the CFTR parameters.
 # P0 and P1 are expressed as transition probability matrices:
