@@ -7,6 +7,7 @@ Created on Fri May 29 09:43:29 2020
 """
 
 import numpy as np
+from scipy.linalg import expm
 
 # Edit this file to change the CFTR parameters.
 # P0 and P1 are expressed as transition probability matrices:
@@ -29,13 +30,16 @@ class Receptor:
              [1.7, 0.,    0.,    0.,    0.,   12.8,  -14.5]]) # C4
         
         dt = 0.01
-        
-        self.P0 = np.eye(7) + R*dt
-        
-        # C1aExitProb is [ATP] * 9000
-        self.P0[0,0] = 1-C1aExitProb
-        self.P0[0,1] = C1aExitProb
 
+        # we specify C1aExitProbability to stay compatible with earlier versions
+        # but what it really means is the out rate from C1a normalized by dt
+        R[0,0] = -1*C1aExitProb/dt
+        R[0,1] = C1aExitProb/dt        
+
+        #self.P0 = np.eye(7) + R*dt
+        self.P0 = expm(dt*R)
+
+        # C1aExitProb is [ATP] * 9000
         self.P1 = None # self.P1 used to have meaning but is now unused
         
         self.Pmask = np.array(

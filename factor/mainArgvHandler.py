@@ -6,7 +6,7 @@ Created on Tue Sep 29 10:40:38 2020
 @author: andreweckford
 """
 
-from receptors import CFTR,ACh,AChZhang
+from receptors import CFTR,CFTRk1250a,ACh,AChZhang
 import sys
 
 class clp:
@@ -97,6 +97,11 @@ class clp:
         if (rString == "CFTR"):
             # parameter for CFTR is transition probability 1->2
             r = CFTR.Receptor(float(rParams))
+            return r
+
+        if (rString == "CFTRk1250a"):
+            # parameter for CFTR is transition probability 1->2
+            r = CFTRk1250a.Receptor(float(rParams))
             return r
         
         if (rString == "ACh"):
