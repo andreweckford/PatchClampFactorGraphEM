@@ -34,17 +34,22 @@ class IonChannelNode:
 
 class IonChannelNodeNoisy:
     
-    def __init__(self,o,statemap,sigma2):
+    def __init__(self,o,statemap,currentEstimate,sigma2):
         self.o = o
         self.statemap = statemap
         self.sigma2 = sigma2
+        self.currentEstimate = currentEstimate
         
     def message(self):
         r = np.zeros(len(self.statemap))
         for i in range(0,len(self.statemap)):
-            r[i] = 1/np.sqrt(2*np.pi*self.sigma2) 
-            r[i] *= np.exp(-1/(2*self.sigma2) * np.power(self.o - self.statemap[i],2))
-            
+            r[i] = 1/np.sqrt(2*np.pi*self.sigma2)
+            if (self.statemap[i] == 0):
+                r[i] *= np.exp(-1/(2*self.sigma2) * np.power(self.o - self.currentEstimate[0],2))
+            elif (self.statemap[i] == 1):
+                r[i] *= np.exp(-1/(2*self.sigma2) * np.power(self.o - self.currentEstimate[1],2))
+            else:
+                print("Boo!")
         return r
     
     def emPosteriori(self,stateExtrinsicMessage):
@@ -62,7 +67,9 @@ class IonChannelNodeNoisy:
                 emsg_y[1] += stateExtrinsicMessage[i]
                 
         # channel message for y
-        cmsg_y = np.exp(-1/(2*self.sigma2) * np.power(self.o - np.array([0.,1.]),2))
+        #cmsg_y = np.exp(-1/(2*self.sigma2) * np.power(self.o - np.array([0.,1.]),2))
+        #print(self.currentEstimate)
+        cmsg_y = np.exp(-1/(2*self.sigma2) * np.power(self.o - self.currentEstimate,2))
         cmsg_y *= 1/np.sqrt(2*np.pi*self.sigma2)
         
         return (emsg_y * cmsg_y)/np.sum(emsg_y * cmsg_y)

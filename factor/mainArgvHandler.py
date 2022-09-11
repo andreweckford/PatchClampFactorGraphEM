@@ -28,9 +28,12 @@ class clp:
         ['suppressParameters','-sq',True,''],
         ['diagonalBias','-d',False,'float'],
         ['noiseVariance','-v',False,'float'],
-        ['initialNoiseVarianceEstimate','-nv',False,'float'],
+        ['initialNoiseVarianceEstimate','-en',False,'float'],
         ['estimateNoiseVariance','-ev',True,''],
-        ['inputData','-t',True,'']
+        ['inputData','-t',True,''],
+        ['estimateCurrentAmplitude','-ei',True,''],
+        ['closedInitialEstimate','-ec',False,'float'],
+        ['openInitialEstimate','-eo',False,'float']
     ]
 
     # this is where the initial parameters are defined
@@ -50,6 +53,9 @@ class clp:
         flags[11][0] : 1.,
         flags[12][0] : False,
         flags[13][0] : False,
+        flags[14][0] : False,
+        flags[15][0] : 0.,
+        flags[16][0] : 1.,
         "validArgv" : True
     }
         
