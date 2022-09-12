@@ -232,13 +232,13 @@ def main(inputData = None):
         # current estimate
         if (params["estimateCurrentAmplitude"] is True):
             Q_currentEstimate = estimateCurrentAmplitude(c,v,ionChannels)
-            #print((Q_currentEstimate,params["currentEstimate"]))
+            #print(Q_currentEstimate)
             params["currentEstimate"] = Q_currentEstimate
         
         # noise estimate
         # we don't estimate the noise if the noise variance is zero, obviously
         if (params["estimateNoiseVariance"] is True) and (params["noiseVariance"] > 0):
-            Q_sigma2 = estimateNoiseVariance(c,v,ionChannels)
+            Q_sigma2 = estimateNoiseVariance(c,v,ionChannels,params["currentEstimate"])
             #print(Q_sigma2)
             sigma2 = Q_sigma2
         
@@ -254,24 +254,28 @@ def main(inputData = None):
         printP(P)
 
 # do the M step estimation of the noise variance
-def estimateNoiseVariance(c,v,ionChannels):
-    z2Sum = 0 # sum of squares of channel observations
-    yzSum = 0 # sum of channel obs * E[y_i]
-    y2Sum = 0 # sum of E[y_i^2]
+# when also estimating current, we do the current estimation first in the M step
+# which means that, strictly speaking, this is a generalized EM algoirthm
+def estimateNoiseVariance(c,v,ionChannels,currentEstimate):
+
+    Wn = 0
     
-    # calculate the sums
     for i in range(0,len(c)):
-        z2Sum += np.power(ionChannels[i],2)
-        
-        # posterior distribution of ion channel state y given everything known
-        foo = c[i].emPosteriori(v[i].aPosterioriNoChannel())
-        
-        # since y \in {0,1}, E[y_i] = E[y_i^2] = foo[1]
-        yzSum += foo[1] * ionChannels[i]
-        y2Sum += np.power(foo[1],2)
     
-    q = (z2Sum - 2*yzSum + y2Sum)/len(c)
-    return q
+        # foo[0] is the probability of closed at this time, foo[1] is the probability of open at this time
+        foo = c[i].emPosteriori(v[i].aPosterioriNoChannel())
+    
+        # considering the sum in the paper (probably equation S38 unless something changes),
+        # all terms in I_{s_k} are equal if the channel is open or closed,
+        # so we can group them together and consider only the posterior
+        # probability of being open or closed
+        Wn += np.power(ionChannels[i] - currentEstimate[0],2) * foo[0]
+        Wn += np.power(ionChannels[i] - currentEstimate[1],2) * foo[1]
+
+    W = Wn / len(c)
+
+    return W
+
     
 def estimateCurrentAmplitude(c,v,ionChannels):
     io_num = 0
@@ -280,13 +284,8 @@ def estimateCurrentAmplitude(c,v,ionChannels):
     ic_den = 0
     
     for i in range(0,len(c)):
-        
-        # probability of closed at this time
-        pc = 0
-        
-        # probability of open at this time
-        po = 0
-        
+                
+        # foo[0] is the probability of closed at this time, foo[1] is the probability of open at this time
         foo = c[i].emPosteriori(v[i].aPosterioriNoChannel())
         
         io_num += ionChannels[i] * foo[1]
