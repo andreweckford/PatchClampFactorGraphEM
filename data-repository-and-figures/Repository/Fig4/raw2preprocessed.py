@@ -1,3 +1,6 @@
+# this module implements the decimation filter
+# takes the raw data and averages over non-overlapping blocks of 50 samples
+
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
